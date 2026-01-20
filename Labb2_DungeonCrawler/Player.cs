@@ -43,7 +43,7 @@ public class Player : LevelElement
         Console.WriteLine(returnMessage);
         return returnMessage;
     }
-    private void PlayerMoveMethod(ConsoleKeyInfo userMove)
+    private void PlayerMoveMethod(ConsoleKeyInfo userMove, string logMessage, MessageLog messageLog)
     {
         int hold;
         LastMove = userMove.Key;
@@ -59,12 +59,12 @@ public class Player : LevelElement
         }
         if (!this.IsSpaceAvailable())
         {
-            CollideAndConcequences(this);
+            CollideAndConcequences(this, logMessage, messageLog);
             if (userMove.Key == ConsoleKey.UpArrow || userMove.Key == ConsoleKey.DownArrow) this.yCordinate = hold;
             else this.xCordinate = hold;
         }
     }
-    private void LazerShootMethod(ConsoleKey lastMove, int lazerLength)
+    private void LazerShootMethod(ConsoleKey lastMove, int lazerLength, string logMessage, MessageLog messageLog)
     {
         if (lastMove == ConsoleKey.UpArrow || lastMove == ConsoleKey.DownArrow)
         {
@@ -74,7 +74,7 @@ public class Player : LevelElement
                 if (lazer.IsSpaceAvailable()) LevelData.Elements?.Add(lazer);
                 else
                 {
-                    lazer.CollideAndConcequences(this);
+                    lazer.CollideAndConcequences(this, logMessage, messageLog);
                     break;
                 }
             }
@@ -87,15 +87,16 @@ public class Player : LevelElement
                 if (lazer.IsSpaceAvailable()) LevelData.Elements?.Add(lazer);
                 else
                 {
-                    lazer.CollideAndConcequences(this);
+                    lazer.CollideAndConcequences(this, logMessage, messageLog);
                     break;
                 }
             }
         }
     }
-    public void Update(ConsoleKeyInfo userMove)
+    public void Update(ConsoleKeyInfo userMove, string logMessage, MessageLog messageLog)
     {
-        this.PrintUnitInfo();
+        logMessage = this.PrintUnitInfo();
+        messageLog.MyLog.Add(logMessage);
         this.TurnsPlayed++;
         this.Erase();
         var lazers = (LevelData.Elements ?? Enumerable.Empty<LevelElement>()).OfType<Lazer>().ToList();
@@ -104,7 +105,7 @@ public class Player : LevelElement
         {
             lazer.Erase();
         }
-        if (userMove.Key == ConsoleKey.Z) LazerShootMethod(LastMove, 3);
-        else PlayerMoveMethod(userMove);
+        if (userMove.Key == ConsoleKey.Z) LazerShootMethod(LastMove, 3, logMessage, messageLog);
+        else PlayerMoveMethod(userMove, logMessage, messageLog);
     }
 }

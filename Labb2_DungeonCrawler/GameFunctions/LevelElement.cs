@@ -1,5 +1,6 @@
 ﻿using Labb2_DungeonCrawler;
 using Labb2_DungeonCrawler.GameFunctions;
+using Labb2_DungeonCrawler.Log;
 
 
 
@@ -17,7 +18,10 @@ public abstract class LevelElement
     public int HP { get; set; }
 
 
-    public virtual string PrintUnitInfo() { }
+    public virtual string PrintUnitInfo() 
+    {
+        return "";
+    }
     public static void LevelChoice()
     {
         ConsoleKeyInfo userChoice;
@@ -112,7 +116,7 @@ public abstract class LevelElement
         return LevelData.Elements != null &&
                !LevelData.Elements.Any(k => k != this && k.yCordinate == targetSpace.YCord && k.xCordinate == targetSpace.XCord);
     }
-    public void CollideAndConcequences(Player player)
+    public void CollideAndConcequences(Player player, string logMessage, MessageLog messageLog)
     {
         var collider = this.GetCollider();
         if (collider is not Wall && !(collider is Enemy && this is Enemy))
@@ -123,8 +127,10 @@ public abstract class LevelElement
             Console.SetCursorPosition(0, 1);
             PrintFightresult(Fight(collider), collider, player);
             if (collider.HP > 0) collider.PrintFightresult(collider.Fight(this), this, player);
-            this.PrintUnitInfo();
-            collider.PrintUnitInfo();
+            logMessage = this.PrintUnitInfo();
+            messageLog.MyLog.Add(logMessage);
+            logMessage = collider.PrintUnitInfo();
+            messageLog.MyLog.Add(logMessage);
         }
     }
     public LevelElement? GetCollider()

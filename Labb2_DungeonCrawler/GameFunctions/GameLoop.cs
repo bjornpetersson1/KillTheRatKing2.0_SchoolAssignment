@@ -86,7 +86,7 @@ public abstract class GameLoop:LevelElement
                         savedHP = player.HP;
                         break;
                     }
-                    if(player.playerDirection.ContainsKey(menuChoice.Key) || menuChoice.Key == ConsoleKey.Z) player.Update(menuChoice);
+                    if(player.playerDirection.ContainsKey(menuChoice.Key) || menuChoice.Key == ConsoleKey.Z) player.Update(menuChoice, logMessage, currentMessageLog);
                     foreach (var wall in walls)
                     {
                         wall.Update(player);
@@ -95,7 +95,7 @@ public abstract class GameLoop:LevelElement
                     foreach (var enemy in enemys)
                     {
                         enemy.Erase();
-                        enemy.Update(player);
+                        enemy.Update(player, logMessage, currentMessageLog);
                     }
                     var deadRats = LevelData.Elements?.OfType<Rat>().Where(e => e.HP <= 0).ToList() ?? new List<Rat>();
                     foreach (var rat in deadRats)

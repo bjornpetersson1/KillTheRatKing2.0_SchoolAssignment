@@ -1,4 +1,5 @@
 ﻿using Labb2_DungeonCrawler.GameFunctions;
+using Labb2_DungeonCrawler.Log;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Labb2_DungeonCrawler;
 
 public abstract class Enemy : LevelElement
 {
-    public abstract void Update(Player player);
+    public abstract void Update(Player player, string logMessage, MessageLog messageLog);
     public override string PrintUnitInfo()
     {
         Console.SetCursorPosition(0, 3);
