@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Media;
 using Labb2_DungeonCrawler.State;
+using Labb2_DungeonCrawler.Log;
 
 namespace Labb2_DungeonCrawler;
 
@@ -16,6 +17,8 @@ public abstract class GameLoop:LevelElement
         SoundPlayer musicPlayer = new SoundPlayer("ProjectFiles\\09. Björn Petersson - Uppenbarelse.wav");
         musicPlayer.PlayLooping();
         var currentGameState = new GameState();
+        var currentMessageLog = new MessageLog();
+        string logMessage = string.Empty;
         while (true)
         {
             bool isAlive = true;
@@ -51,7 +54,8 @@ public abstract class GameLoop:LevelElement
                 }
                 player.Name = userName; 
                 Console.Clear();
-                player.PrintUnitInfo();
+                logMessage = player.PrintUnitInfo();
+                currentMessageLog.MyLog.Add(logMessage);
                 Graphics.WriteInfo();
                 foreach (var wall in walls ?? Enumerable.Empty<Wall>())
                 {

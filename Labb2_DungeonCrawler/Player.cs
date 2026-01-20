@@ -1,4 +1,5 @@
 ﻿using Labb2_DungeonCrawler.GameFunctions;
+using Labb2_DungeonCrawler.Log;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,7 @@ public class Player : LevelElement
         playerDirection.Add(ConsoleKey.DownArrow, +1);
         playerDirection.Add(ConsoleKey.RightArrow, +1);
     }
-    public override void PrintUnitInfo()
+    public override string PrintUnitInfo()
     {
         if (TurnsPlayed == 10 || TurnsPlayed == 100 || TurnsPlayed == 1000 || TurnsPlayed == 10000 || TurnsPlayed == 100000)
         {
@@ -38,7 +39,9 @@ public class Player : LevelElement
         }
         Console.SetCursorPosition(0, 0);
         Console.ForegroundColor = ConsoleColor.DarkGreen;
-        Console.WriteLine($"|{Symbol}: {Name} | HP: {HP} | XP: {XP}| Attack: {AttackDice} | Defence: {DefenceDice} | Turn: {TurnsPlayed} |");
+        string returnMessage = $"|{Symbol}: {Name} | HP: {HP} | XP: {XP}| Attack: {AttackDice} | Defence: {DefenceDice} | Turn: {TurnsPlayed} |";
+        Console.WriteLine(returnMessage);
+        return returnMessage;
     }
     private void PlayerMoveMethod(ConsoleKeyInfo userMove)
     {

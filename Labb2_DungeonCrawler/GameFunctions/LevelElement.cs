@@ -17,7 +17,7 @@ public abstract class LevelElement
     public int HP { get; set; }
 
 
-    public virtual void PrintUnitInfo() { }
+    public virtual string PrintUnitInfo() { }
     public static void LevelChoice()
     {
         ConsoleKeyInfo userChoice;
