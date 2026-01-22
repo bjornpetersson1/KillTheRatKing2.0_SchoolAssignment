@@ -1,6 +1,7 @@
 ﻿using Labb2_DungeonCrawler.GameFunctions;
 using Labb2_DungeonCrawler.Log;
 using Labb2_DungeonCrawler.State;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,9 @@ namespace Labb2_DungeonCrawler;
 
 public class Player : LevelElement
 {
+    [BsonIgnore]
     public ConsoleKey LastMove { get; set; }
+    [BsonIgnore]
     public Dictionary<ConsoleKey, int> playerDirection;
     public Player(string name = "player")
     {

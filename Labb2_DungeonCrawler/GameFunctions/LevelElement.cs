@@ -6,17 +6,25 @@ using MongoDB.Bson.Serialization.Attributes;
 
 
 
+    [BsonDiscriminator]
+    [BsonKnownTypes(typeof(Player), typeof(Enemy), typeof(Rat), typeof(Snake), typeof(TheRatKing), typeof(TheKingsTail), typeof(Wall))]
 public abstract class LevelElement
 {
+    [BsonIgnore]
     protected GameState? Game { get; private set; }
     public int xCordinate { get; set; }
     public int yCordinate { get; set; }
+
+    [BsonRepresentation(MongoDB.Bson.BsonType.String)]
     public char Symbol { get; set; }
+    [BsonIgnore]
     public ConsoleColor MyColor { get; set; }
     public string? Name { get; set; }
     public int TurnsPlayed { get; set; }
     public int XP { get; set; }
+    [BsonIgnore]
     public Dice? AttackDice { get; set; }
+    [BsonIgnore]
     public Dice? DefenceDice { get; set; }
     public int HP { get; set; }
 

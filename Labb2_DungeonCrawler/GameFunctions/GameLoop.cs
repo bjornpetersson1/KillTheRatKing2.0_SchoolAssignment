@@ -1,5 +1,6 @@
 ﻿using Labb2_DungeonCrawler.Log;
 using Labb2_DungeonCrawler.State;
+using Labb2_DungeonCrawler.MongoConnection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,6 +40,7 @@ public static class GameLoop
 
             while (player.HP > 0)
             {
+
                 Graphics.WriteInfo();
                 var menuChoice = Console.ReadKey(true);
                 if (menuChoice.Key == ConsoleKey.Escape)
@@ -55,7 +57,7 @@ public static class GameLoop
                 UpdateEnemies(currentGameState);
                 HandleDeadEnemies(currentGameState, player);
                 DrawAll(currentGameState, player);
-                    
+                MongoConnection.MongoConnection.SaveGameToDB(currentGameState);
             };
 
             if (player.HP <= 0)
@@ -74,6 +76,10 @@ public static class GameLoop
     private static void StartGame(out GameState currentGameState, out Player player, string userName, int savedHP, int savedXP)
     {
         currentGameState = new GameState();
+        //currentGameState = MongoConnection.MongoConnection
+        //                .LoadGameFromDB(new MongoDB.Bson.ObjectId("69728824e80dc413b43a363d"))
+        //                .GetAwaiter()
+        //                .GetResult();
         Graphics.WriteLevelSelect(userName);
         LevelElement.LevelChoice(currentGameState);
 
@@ -176,6 +182,6 @@ public static class GameLoop
         }
         while (menuChoice.Key != ConsoleKey.Escape && menuChoice.Key != ConsoleKey.Enter);
         if (menuChoice.Key == ConsoleKey.Enter) Console.Clear();
-        //else if (menuChoice.Key == ConsoleKey.Escape) break;
+        //else if (menuChoice.Key == ConsoleKey.Escape) 
     }
 }

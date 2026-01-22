@@ -1,5 +1,6 @@
 ﻿using Labb2_DungeonCrawler.Log;
 using Labb2_DungeonCrawler.State;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ namespace Labb2_DungeonCrawler;
 
 public class Rat : Enemy
 {
+    [BsonIgnore]
     private Random random;
     public Rat()
     {
