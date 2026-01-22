@@ -1,154 +1,181 @@
-﻿using System;
+﻿using Labb2_DungeonCrawler.Log;
+using Labb2_DungeonCrawler.State;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Media;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Media;
-using Labb2_DungeonCrawler.State;
-using Labb2_DungeonCrawler.Log;
 
 namespace Labb2_DungeonCrawler;
 
-public abstract class GameLoop:LevelElement
+public static class GameLoop
 {
     public static void GameStart()
     {
-        SoundPlayer musicPlayer = new SoundPlayer("ProjectFiles\\09. Björn Petersson - Uppenbarelse.wav");
-        musicPlayer.PlayLooping();
-        var currentGameState = new GameState();
-        string logMessage = string.Empty;
+        PlayMusicLoop();
+        string userName = Graphics.WriteStartScreen();
+        bool isAlive = true;
+        int savedXP = -1;
+        int savedHP = -1;
+        Console.CursorVisible = false;
+        
         while (true)
         {
-            bool isAlive = true;
-            int savedXP = -1;
-            int savedHP = -1;
-            ConsoleKeyInfo menuChoice;
-            Console.CursorVisible = false;
-            string userName = Graphics.WriteStartScreen();
-            while(true)
+            StartGame(out var currentGameState, out var player, userName, savedHP, savedXP);
+
+            //var enemys = currentGameState.CurrentState?.OfType<Enemy>().ToList();
+            //if (enemys == null)
+            //{
+            //    throw new ArgumentNullException("no enemies found, add enemies to the map");
+            //}
+            //var walls = currentGameState.CurrentState?.OfType<Wall>().ToList();
+            //if (walls == null)
+            //{
+            //    throw new ArgumentNullException("no walls found, add walls to the map");
+            //}
+
+            while (player.HP > 0)
             {
-                //LevelData.Elements?.Clear();
-                currentGameState.CurrentState?.Clear();
-                Graphics.WriteLevelSelect(userName);
-                LevelChoice(currentGameState);
-                //var player = LevelData.Elements?.OfType<Player>().FirstOrDefault();
-                var player = currentGameState.CurrentState?.OfType<Player>().FirstOrDefault();
-                if (player == null)
-                {
-                    throw new ArgumentNullException("no player found, add a player to the map");
-                }
-                //var enemys = LevelData.Elements?.OfType<Enemy>().ToList();
-                var enemys = currentGameState.CurrentState?.OfType<Enemy>().ToList();
-                if (enemys == null)
-                {
-                    throw new ArgumentNullException("no enemies found, add enemies to the map");
-                }
-                var walls = currentGameState.CurrentState?.OfType<Wall>().ToList();
-                if (walls == null)
-                {
-                    throw new ArgumentNullException("no walls found, add walls to the map");
-                }
-                if (savedHP != -1)
-                {
-                    player.HP = savedHP;
-                    player.XP = savedXP;
-                }
-                player.Name = userName; 
-                Console.Clear();
-                logMessage = player.PrintUnitInfo();
-                currentGameState.MessageLog.MyLog.Add(logMessage);
                 Graphics.WriteInfo();
-                foreach (var wall in walls ?? Enumerable.Empty<Wall>())
+                var menuChoice = Console.ReadKey(true);
+                if (menuChoice.Key == ConsoleKey.Escape)
                 {
-                    wall.Update(player);
-                    if (wall.IsToBeDrawn()) wall.Draw();
+                    Console.Clear();
+                    savedXP = player.XP;
+                    savedHP = player.HP;
+                    break;
                 }
-                foreach (var element in currentGameState.CurrentState ?? Enumerable.Empty<LevelElement>())
-                {
-                    if (element is Player)
-                    {
-                        element.Draw();
-                    }
-                    else if (element.GetDistanceTo(player) < 5)
-                    {
-                        element.Draw();
-                    }
-                }
-                do
-                {
-                    Graphics.WriteInfo();
-                    enemys = currentGameState.CurrentState?.OfType<Enemy>().ToList() ?? new List<Enemy>();
-                    walls = currentGameState.CurrentState?.OfType<Wall>().ToList() ?? new List<Wall>();
-                    menuChoice = Console.ReadKey(true);                                       
-                    if (menuChoice.Key == ConsoleKey.Escape)
-                    {
-                        Console.Clear();
-                        savedXP = player.XP;
-                        savedHP = player.HP;
-                        break;
-                    }
-                    if(player.playerDirection.ContainsKey(menuChoice.Key) 
-                        || menuChoice.Key == ConsoleKey.Z) player.Update(menuChoice, logMessage, currentGameState.MessageLog, currentGameState);
-                    foreach (var wall in walls)
-                    {
-                        wall.Update(player);
-                        if (wall.IsToBeDrawn()) wall.Draw();
-                    }
-                    foreach (var enemy in enemys)
-                    {
-                        enemy.Erase();
-                        enemy.Update(player, logMessage, currentGameState.MessageLog, currentGameState);
-                    }
-                    var deadRats = currentGameState.CurrentState?.OfType<Rat>().Where(e => e.HP <= 0).ToList() ?? new List<Rat>();
-                    foreach (var rat in deadRats)
-                    {
-                        player.XP += 23;
-                    }
-                    var deadSneaks = currentGameState.CurrentState?.OfType<Snake>().Where(e => e.HP <= 0).ToList() ?? new List<Snake>();
-                    foreach (var snake in deadSneaks)
-                    {
-                        player.XP += 57;
-                    }
-                    var deadKings = currentGameState.CurrentState?.OfType<TheRatKing>().Where(e => e.HP <= 0).ToList() ?? new List<TheRatKing>();
-                    foreach (var king in deadKings)
-                    {
-                        player.XP += 132;
-                    }
+                if(player.playerDirection.ContainsKey(menuChoice.Key) 
+                    || menuChoice.Key == ConsoleKey.Z) player.Update(menuChoice);
 
-                    currentGameState.CurrentState?.RemoveAll(e => e is Enemy enemy && enemy.HP <= 0);
+                UpdateWalls(currentGameState);
+                UpdateEnemies(currentGameState);
+                HandleDeadEnemies(currentGameState, player);
+                DrawAll(currentGameState, player);
+                    
+            };
 
-                    foreach (var element in currentGameState.CurrentState ?? Enumerable.Empty<LevelElement>())
-                    {
-                        if (element is Player)
-                        {
-                            element.Draw();
-                        }
-                        else if (element.GetDistanceTo(player) < 5)
-                        {
-                            element.Draw();
-                        }
-                    }
-
-                } while (player.HP > 0);
-
-                if (player.HP <= 0)
-                {
-                    isAlive = false;
-                    savedXP = 0;
-                    savedHP = 100;
-                    Graphics.WriteEndScreen(player);
-
-                    do
-                    {
-                        menuChoice = Console.ReadKey(true); 
-                    }
-                    while (menuChoice.Key != ConsoleKey.Escape && menuChoice.Key != ConsoleKey.Enter);
-                    if (menuChoice.Key == ConsoleKey.Enter) Console.Clear();
-                    else if (menuChoice.Key == ConsoleKey.Escape) break;
-                }
+            if (player.HP <= 0)
+            {
+                HandlePlayerDeath(ref isAlive, ref savedXP, ref savedHP, player);
             }
-            if (isAlive == false) break;
         }
+    }
+
+    private static void PlayMusicLoop()
+    {
+        SoundPlayer musicPlayer = new SoundPlayer("ProjectFiles\\09. Björn Petersson - Uppenbarelse.wav");
+        musicPlayer.PlayLooping();
+    }
+
+    private static void StartGame(out GameState currentGameState, out Player player, string userName, int savedHP, int savedXP)
+    {
+        currentGameState = new GameState();
+        Graphics.WriteLevelSelect(userName);
+        LevelElement.LevelChoice(currentGameState);
+
+        player = currentGameState.CurrentState?.OfType<Player>().FirstOrDefault();
+        if (player == null)
+        {
+            throw new ArgumentNullException("no player found, add a player to the map");
+        }
+
+        player.Name = userName;
+
+        if (savedHP != -1)
+        {
+            player.HP = savedHP;
+            player.XP = savedXP;
+        }
+
+        foreach (var element in currentGameState.CurrentState ?? Enumerable.Empty<LevelElement>())
+        {
+            element.SetGame(currentGameState);
+        }
+
+        Console.Clear();
+
+        var logMessage = player.PrintUnitInfo();
+        currentGameState.MessageLog.MyLog.Add(logMessage);
+
+        DrawAll(currentGameState, player);
+    }
+
+    private static void DrawAll(GameState gameState, Player player)
+    {
+        foreach (var element in gameState.CurrentState ?? Enumerable.Empty<LevelElement>())
+        {
+            if (element is Player)
+            {
+                element.Draw();
+            }
+            else if (element.GetDistanceTo(player) < 5)
+            {
+                element.Draw();
+            }
+        }
+    }
+
+    private static void UpdateWalls(GameState gameState)
+    {
+        var walls = gameState.CurrentState?.OfType<Wall>().ToList() ?? new List<Wall>();
+
+        foreach (var wall in walls ?? Enumerable.Empty<Wall>())
+        {
+            wall.Update();
+            if (wall.IsToBeDrawn()) wall.Draw();
+        }
+    }
+
+    private static void UpdateEnemies(GameState gameState)
+    {
+        var enemys = gameState.CurrentState?.OfType<Enemy>().ToList() ?? new List<Enemy>();
+
+        foreach (var enemy in enemys)
+        {
+            enemy.Erase();
+            enemy.Update();
+        }
+    }
+
+    private static void HandleDeadEnemies(GameState gameState, Player player)
+    {
+        var deadRats = gameState.CurrentState?.OfType<Rat>().Where(e => e.HP <= 0).ToList() ?? new List<Rat>();
+        foreach (var rat in deadRats)
+        {
+            player.XP += 23;
+        }
+        var deadSneaks = gameState.CurrentState?.OfType<Snake>().Where(e => e.HP <= 0).ToList() ?? new List<Snake>();
+        foreach (var snake in deadSneaks)
+        {
+            player.XP += 57;
+        }
+        var deadKings = gameState.CurrentState?.OfType<TheRatKing>().Where(e => e.HP <= 0).ToList() ?? new List<TheRatKing>();
+        foreach (var king in deadKings)
+        {
+            player.XP += 132;
+        }
+
+        gameState.CurrentState?.RemoveAll(e => e is Enemy enemy && enemy.HP <= 0);
+    }
+
+    private static void HandlePlayerDeath(ref bool isAlive, ref int savedXP, ref int savedHP, Player player)
+    {
+        isAlive = false;
+        savedXP = 0;
+        savedHP = 100;
+        Graphics.WriteEndScreen(player);
+
+        ConsoleKeyInfo menuChoice;
+        do
+        {
+            menuChoice = Console.ReadKey(true);
+        }
+        while (menuChoice.Key != ConsoleKey.Escape && menuChoice.Key != ConsoleKey.Enter);
+        if (menuChoice.Key == ConsoleKey.Enter) Console.Clear();
+        //else if (menuChoice.Key == ConsoleKey.Escape) break;
     }
 }
