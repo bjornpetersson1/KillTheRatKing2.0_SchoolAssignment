@@ -18,14 +18,30 @@ public static class GameLoop
 
     public static void GameStart()
     {
+        string pasteObjectIdHere = "697511ede35f016ff860393e";
+
+
         PlayMusicLoop();
         string userName = Graphics.WriteStartScreen();
         bool isAlive = true;
         int savedXP = 0;
         int savedHP = 100;
+        ObjectId id;
         Console.CursorVisible = false;
-        ObjectId id = ObjectId.Empty;
-        //ObjectId id = ObjectId.Parse("6974f1a4483444867eae2100");
+        Console.WriteLine("Press [L] to load, [D] to delete save and start a new game, anything else to just start a new game");
+        var loadOrNew = Console.ReadKey(true);
+        if (loadOrNew.Key == ConsoleKey.D)
+        {
+            DeleteSave(ObjectId.Parse(pasteObjectIdHere));
+        }
+        if (loadOrNew.Key == ConsoleKey.L)
+        {
+            id = ObjectId.Parse(pasteObjectIdHere);
+        }
+        else
+        {
+            id = ObjectId.Empty;
+        }
 
         while (true)
         {
@@ -71,6 +87,8 @@ public static class GameLoop
         return gameState;
     }
 
+
+    //SKA DEN HÄR METODEN INTEE VARA ASYNC?
     private static GameState LoadGame(ObjectId id, string userName)
     {
         var gameState = MongoConnection.MongoConnection.LoadGameFromDB(id).GetAwaiter().GetResult();
@@ -84,6 +102,10 @@ public static class GameLoop
 
         return gameState;
     }
+    private async static void DeleteSave(ObjectId id)
+    {
+        await MongoConnection.MongoConnection.DeleteSaveFromDB(id);
+    }
 
     private static Player InitGame(GameState gameState, string userName, int? savedHP, int? savedXP)
     {
@@ -92,7 +114,7 @@ public static class GameLoop
             .FirstOrDefault() 
             ?? throw new ArgumentNullException("No player found.");
 
-        //player.Name = userName;
+        player.Name = userName;
         player.LoadPlayerData();
 
 
@@ -112,6 +134,7 @@ public static class GameLoop
         var logMessage = player.PrintUnitInfo();
         gameState.MessageLog.MyLog.Add(logMessage);
 
+        UpdateWalls(gameState);
         DrawAll(gameState, player);
 
         return player;

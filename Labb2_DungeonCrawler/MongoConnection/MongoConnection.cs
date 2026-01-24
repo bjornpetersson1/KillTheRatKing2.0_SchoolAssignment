@@ -40,5 +40,12 @@ namespace Labb2_DungeonCrawler.MongoConnection
             return await collection.Find(filter).FirstOrDefaultAsync();         
         }
 
+        public static async Task DeleteSaveFromDB(ObjectId id)
+        {
+            ConnectToDB();
+            var filter = Builders<GameState>.Filter.Eq(g => g.Id, id);
+            await collection.DeleteOneAsync(filter);
+
+        }
     }
 }
