@@ -1,11 +1,15 @@
 ﻿using Labb2_DungeonCrawler.State;
 using MongoDB.Bson;
+using System.IO;
 using System.Media;
 
 namespace Labb2_DungeonCrawler;
 
 public static class GameLoop
 {
+    private static SoundPlayer musicPlayer;
+    private static string currentTrack;
+
 
     public static async Task GameStart()
     {
@@ -14,36 +18,35 @@ public static class GameLoop
         //AddNewClass("Wizard");
         //AddNewClass("Thief");
         //AddNewClass("Cat");
-
-        Graphics.WriteTitleScreen();
-        Console.ReadKey(true);
-        PlayMusicLoop();
-        bool isAlive = true;
-        int savedXP = 0;
-        int savedHP = 100;
-        ObjectId id;
-        Console.CursorVisible = false;
-        Console.Clear();
-        Console.SetCursorPosition(0, 10);
-        Console.WriteLine("Press [L] to load, [D] to delete save and start a new game,\nanything else to just start a new game");
-        var loadNewOrDelete = Console.ReadKey(true);
-        if (loadNewOrDelete.Key == ConsoleKey.D)
-        {
-            var selectedSave = SelectSaveFromList('D');
-            ConfirmSaveDelete(selectedSave);
-        }
-        if (loadNewOrDelete.Key == ConsoleKey.L)
-        {
-            var selectedSave = SelectSaveFromList('L');
-            id = selectedSave.Id;
-        }
-        else
-        {
-            id = ObjectId.Empty;
-        }
-
         while (true)
         {
+            Graphics.WriteTitleScreen();
+            Console.ReadKey(true);
+            PlayMusicLoop("ProjectFiles\\09. Björn Petersson - Uppenbarelse.wav");
+            bool isAlive = true;
+            int savedXP = 0;
+            int savedHP = 100;
+            ObjectId id;
+            Console.CursorVisible = false;
+            Console.Clear();
+            Console.SetCursorPosition(0, 10);
+            Console.WriteLine("Press [L] to load, [D] to delete save and start a new game,\nanything else to just start a new game");
+            var loadNewOrDelete = Console.ReadKey(true);
+            if (loadNewOrDelete.Key == ConsoleKey.D)
+            {
+                var selectedSave = SelectSaveFromList('D');
+                ConfirmSaveDelete(selectedSave);
+            }
+            if (loadNewOrDelete.Key == ConsoleKey.L)
+            {
+                var selectedSave = SelectSaveFromList('L');
+                id = selectedSave.Id;
+            }
+            else
+            {
+                id = ObjectId.Empty;
+            }
+
             GameState gameState;
             Player player;
             if (id != ObjectId.Empty)
@@ -61,10 +64,7 @@ public static class GameLoop
             player.XP = savedXP;
 
             RunGameLoop(gameState, player);
-
-            savedHP = player.HP;
-            savedXP = player.XP;
-
+            HandlePlayerDeath(player, gameState.Id);
         }
     }
 
@@ -73,10 +73,16 @@ public static class GameLoop
         await MongoConnection.MongoConnection
             .AddClassToCollection(newClass);
     }
-    private static void PlayMusicLoop()
+    private static void PlayMusicLoop(string path)
     {
-        SoundPlayer musicPlayer = new SoundPlayer("ProjectFiles\\09. Björn Petersson - Uppenbarelse.wav");
+        if (currentTrack == path)
+            return;
+
+        musicPlayer?.Stop();
+
+        musicPlayer = new SoundPlayer(path);
         musicPlayer.PlayLooping();
+        currentTrack = path;
     }
 
     private static GameState StartNewGame()
@@ -174,7 +180,7 @@ public static class GameLoop
         .GetAwaiter()
         .GetResult();
     }
-    private async static void DeleteSave(ObjectId id)
+    private async static Task DeleteSave(ObjectId id)
     {
         await MongoConnection.MongoConnection.DeleteSaveFromDB(id);
     }
@@ -245,7 +251,6 @@ public static class GameLoop
             DrawAll(gameState, player);
             MongoConnection.MongoConnection.SaveGameToDB(gameState);
         };
-        HandlePlayerDeath(player, gameState.Id);
     }
 
     private static void DrawAll(GameState gameState, Player player)
@@ -306,8 +311,10 @@ public static class GameLoop
         gameState.CurrentState?.RemoveAll(e => e is Enemy enemy && enemy.HP <= 0);
     }
 
-    private static void HandlePlayerDeath(Player player, ObjectId id)
+    private static async void HandlePlayerDeath(Player player, ObjectId id)
     {
+        PlayMusicLoop("ProjectFiles\\03-3.wav");
+
         Graphics.WriteEndScreen(player);
 
         ConsoleKeyInfo menuChoice;
@@ -316,10 +323,8 @@ public static class GameLoop
             menuChoice = Console.ReadKey(true);
         }
         while (menuChoice.Key != ConsoleKey.Enter);
-        if (menuChoice.Key == ConsoleKey.Enter)
-        {
-            DeleteSave(id);
-        }
+        
+        await DeleteSave(id);
     }
     static SaveInfoDTO SelectSaveFromList(char purpose)
     {
