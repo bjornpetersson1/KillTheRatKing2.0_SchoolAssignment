@@ -4,5 +4,5 @@ Möjlighet att spela utan musik
 (Volym på musiken)
 
 
--escape to leave level is BROKEN
--play again and escape to close after death is BROKEN
+-fixa så man kan ladda en save som står i menyn
+	eller behövs det? om man laddar en som stod i menyn så kommer man in där man hoppade ur banan

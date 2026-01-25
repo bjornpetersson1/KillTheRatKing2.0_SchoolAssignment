@@ -14,6 +14,9 @@ public static class GameLoop
         //AddNewClass("Wizard");
         //AddNewClass("Thief");
         //AddNewClass("Cat");
+
+        Graphics.WriteTitleScreen();
+        Console.ReadKey(true);
         PlayMusicLoop();
         bool isAlive = true;
         int savedXP = 0;
@@ -78,21 +81,27 @@ public static class GameLoop
 
     private static GameState StartNewGame()
     {
-        string userName = Graphics.WriteStartScreen();
-        var gameState = new GameState(userName);
+        string PlayerName = Graphics.WriteStartScreen();
+        var gameState = new GameState(PlayerName);
         string classChoice = SelectClass();
-        Graphics.WriteLevelSelect(userName);
-        LevelElement.LevelChoice(gameState);
+
+        gameState = SelectLevel(PlayerName, gameState);
+
         var player = gameState.CurrentState?
             .OfType<Player>()
             .FirstOrDefault()
             ?? throw new ArgumentNullException("No player found.");
-
         player.Class = classChoice;
-        player.Name = userName;
+        player.Name = PlayerName;
 
         InitGame(gameState, savedHP: null, savedXP: null);
 
+        return gameState;
+    }
+    private static GameState SelectLevel(string PlayerName,GameState gameState)
+    {
+        Graphics.WriteLevelSelect(PlayerName);
+        LevelElement.LevelChoice(gameState);
         return gameState;
     }
 
@@ -213,10 +222,16 @@ public static class GameLoop
             {
                 MongoConnection.MongoConnection.SaveGameToDB(gameState);
                 Console.Clear();
-                return;
-                //savedXP = player.XP;
-                //savedHP = player.HP;
-                //break;
+                gameState = SelectLevel(player.Name, gameState);
+                string nameHold = player.Name;
+                string classHold = player.Class;
+                player = gameState.CurrentState?
+                    .OfType<Player>()
+                    .FirstOrDefault()
+                    ?? throw new ArgumentNullException("No player found.");
+                player.Name = nameHold;
+                player.Class = classHold;
+                player = InitGame(gameState, player.HP, player.XP);
             }
 
             if (player.playerDirection.ContainsKey(menuChoice.Key) || menuChoice.Key == ConsoleKey.Z)
