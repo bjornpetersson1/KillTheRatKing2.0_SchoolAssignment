@@ -1,15 +1,6 @@
-﻿using Labb2_DungeonCrawler.Log;
-using Labb2_DungeonCrawler.State;
-using Labb2_DungeonCrawler.MongoConnection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Media;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
+﻿using Labb2_DungeonCrawler.State;
 using MongoDB.Bson;
+using System.Media;
 
 namespace Labb2_DungeonCrawler;
 
@@ -32,11 +23,13 @@ public static class GameLoop
         var loadNewOrDelete = Console.ReadKey(true);
         if (loadNewOrDelete.Key == ConsoleKey.D)
         {
-            DeleteSave(ObjectId.Parse(pasteObjectIdHere));
+            var selectedSave = SelectSaveFromList('D');
+            ConfirmSaveDelete(selectedSave);
         }
         if (loadNewOrDelete.Key == ConsoleKey.L)
         {
-            id = SelectSaveFromList();
+            var selectedSave = SelectSaveFromList('L');
+            id = selectedSave.Id;
         }
         else
         {
@@ -54,7 +47,7 @@ public static class GameLoop
             else
             {
                 gameState = StartNewGame(userName);
-            } 
+            }
 
             player = gameState.CurrentState.OfType<Player>().First();
 
@@ -117,7 +110,7 @@ public static class GameLoop
     {
         var player = gameState.CurrentState?
             .OfType<Player>()
-            .FirstOrDefault() 
+            .FirstOrDefault()
             ?? throw new ArgumentNullException("No player found.");
 
         player.Name = userName;
@@ -173,7 +166,8 @@ public static class GameLoop
             HandleDeadEnemies(gameState, player);
             DrawAll(gameState, player);
             MongoConnection.MongoConnection.SaveGameToDB(gameState);
-        };
+        }
+        ;
 
 
 
@@ -255,12 +249,23 @@ public static class GameLoop
         if (menuChoice.Key == ConsoleKey.Enter) Console.Clear();
         //else if (menuChoice.Key == ConsoleKey.Escape) 
     }
-    static ObjectId SelectSaveFromList()
+    static SaveInfoDTO SelectSaveFromList(char purpose)
     {
         var saves = GetSavesPlayerName();
         int index = 0;
         ConsoleKey key;
-
+        var selectedColor = new ConsoleColor();
+        var notSelectedColor = new ConsoleColor();
+        if (purpose == 'D')
+        {
+            notSelectedColor = ConsoleColor.Green;
+            selectedColor = ConsoleColor.Red;
+        }
+        else
+        {
+            notSelectedColor = ConsoleColor.Red;
+            selectedColor = ConsoleColor.Green;
+        }
         do
         {
             Console.Clear();
@@ -269,12 +274,12 @@ public static class GameLoop
             {
                 if (i == index)
                 {
-                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.ForegroundColor = selectedColor;
                     Console.WriteLine($">    {saves[i].PlayerName}, {saves[i].Id.ToString().Substring(saves[i].Id.ToString().Length - 5)}");
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.ForegroundColor = notSelectedColor;
                     Console.WriteLine($"    {saves[i].PlayerName}, {saves[i].Id.ToString().Substring(saves[i].Id.ToString().Length - 5)}");
                 }
             }
@@ -293,7 +298,24 @@ public static class GameLoop
         Console.ResetColor();
         Console.Clear();
 
-        return saves[index].Id;
+        return saves[index];
     }
-
+    static void ConfirmSaveDelete(SaveInfoDTO selectedSave)
+    {
+        var key = new ConsoleKey();
+        Console.Clear();
+        Console.SetCursorPosition(15, 10);
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"are you sure you want to delete {selectedSave.PlayerName}?\n                         [Y]es | [N]o");
+        do
+        {
+            key = Console.ReadKey(true).Key;
+        }
+        while (key != ConsoleKey.Y && key != ConsoleKey.N);
+        if (key == ConsoleKey.Y)
+        {
+            DeleteSave(selectedSave.Id);        
+        }
+        Console.ResetColor();
+    }
 }
