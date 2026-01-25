@@ -9,17 +9,20 @@ public static class GameLoop
 
     public static async Task GameStart()
     {
-        string pasteObjectIdHere = "69750f0948246dd5a0efd7cf";
-
-
+        //AddNewClass("Priest");
+        //AddNewClass("Warrior");
+        //AddNewClass("Wizard");
+        //AddNewClass("Thief");
+        //AddNewClass("Cat");
         PlayMusicLoop();
-        string userName = Graphics.WriteStartScreen();
         bool isAlive = true;
         int savedXP = 0;
         int savedHP = 100;
         ObjectId id;
         Console.CursorVisible = false;
-        Console.WriteLine("Press [L] to load, [D] to delete save and start a new game, anything else to just start a new game");
+        Console.Clear();
+        Console.SetCursorPosition(0, 10);
+        Console.WriteLine("Press [L] to load, [D] to delete save and start a new game,\nanything else to just start a new game");
         var loadNewOrDelete = Console.ReadKey(true);
         if (loadNewOrDelete.Key == ConsoleKey.D)
         {
@@ -42,11 +45,11 @@ public static class GameLoop
             Player player;
             if (id != ObjectId.Empty)
             {
-                gameState = LoadGame(id, userName);
+                gameState = LoadGame(id);
             }
             else
             {
-                gameState = StartNewGame(userName);
+                gameState = StartNewGame();
             }
 
             player = gameState.CurrentState.OfType<Player>().First();
@@ -62,27 +65,80 @@ public static class GameLoop
         }
     }
 
+    private static async void AddNewClass(string newClass)
+    {
+        await MongoConnection.MongoConnection
+            .AddClassToCollection(newClass);
+    }
     private static void PlayMusicLoop()
     {
         SoundPlayer musicPlayer = new SoundPlayer("ProjectFiles\\09. Björn Petersson - Uppenbarelse.wav");
         musicPlayer.PlayLooping();
     }
 
-    private static GameState StartNewGame(string userName)
+    private static GameState StartNewGame()
     {
+        string userName = Graphics.WriteStartScreen();
         var gameState = new GameState(userName);
-
+        string classChoice = SelectClass();
         Graphics.WriteLevelSelect(userName);
         LevelElement.LevelChoice(gameState);
+        var player = gameState.CurrentState?
+            .OfType<Player>()
+            .FirstOrDefault()
+            ?? throw new ArgumentNullException("No player found.");
 
-        InitGame(gameState, userName, savedHP: null, savedXP: null);
+        player.Class = classChoice;
+        player.Name = userName;
+
+        InitGame(gameState, savedHP: null, savedXP: null);
 
         return gameState;
     }
 
+    private static string SelectClass()
+    {
+        var classes = GetClassesNames();
+        int index = 0;
+        ConsoleKey key;
+        do
+        {
+            Console.Clear();
+            Console.ResetColor();
+            Console.WriteLine("select class:");
+            for (int i = 0; i < classes.Count; i++)
+            {
+                if (i == index)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($">    {classes[i]}");
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"    {classes[i]}");
+                }
+            }
+
+            Console.ResetColor();
+
+            key = Console.ReadKey(true).Key;
+
+            if (key == ConsoleKey.UpArrow && index > 0)
+                index--;
+            else if (key == ConsoleKey.DownArrow && index < classes.Count - 1)
+                index++;
+
+        } while (key != ConsoleKey.Enter);
+
+        Console.ResetColor();
+        Console.Clear();
+
+        return classes[index];
+    }
 
     //SKA DEN HÄR METODEN INTEE VARA ASYNC?
-    private static GameState LoadGame(ObjectId id, string userName)
+    private static GameState LoadGame(ObjectId id)
     {
         var gameState = MongoConnection.MongoConnection.LoadGameFromDB(id).GetAwaiter().GetResult();
 
@@ -91,9 +147,17 @@ public static class GameLoop
             throw new Exception("Save not found.");
         }
 
-        InitGame(gameState, userName, savedHP: null, savedXP: null);
+
+        InitGame(gameState, savedHP: null, savedXP: null);
 
         return gameState;
+    }
+    private static List<string> GetClassesNames()
+    {
+        return MongoConnection.MongoConnection
+                                .GetClassesFromDB()
+                                .GetAwaiter()
+                                .GetResult();
     }
     private static List<SaveInfoDTO> GetSavesPlayerName()
     {
@@ -106,14 +170,13 @@ public static class GameLoop
         await MongoConnection.MongoConnection.DeleteSaveFromDB(id);
     }
 
-    private static Player InitGame(GameState gameState, string userName, int? savedHP, int? savedXP)
+    private static Player InitGame(GameState gameState, int? savedHP, int? savedXP)
     {
         var player = gameState.CurrentState?
             .OfType<Player>()
             .FirstOrDefault()
             ?? throw new ArgumentNullException("No player found.");
 
-        player.Name = userName;
         player.LoadPlayerData();
 
 

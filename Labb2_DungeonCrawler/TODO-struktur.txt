@@ -2,3 +2,7 @@
 
 Möjlighet att spela utan musik
 (Volym på musiken)
+
+
+-escape to leave level is BROKEN
+-play again and escape to close after death is BROKEN
