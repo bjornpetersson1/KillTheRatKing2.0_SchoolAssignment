@@ -11,7 +11,7 @@ public static class GameLoop
     private static string currentTrack;
 
 
-    public static async Task GameStart()
+    public static void GameStart()
     {
         //AddNewClass("Priest");
         //AddNewClass("Warrior");
@@ -62,7 +62,7 @@ public static class GameLoop
 
             player.HP = savedHP;
             player.XP = savedXP;
-
+            
             SaveToDb(gameState);
 
             RunGameLoop(gameState, player);
@@ -185,12 +185,12 @@ public static class GameLoop
 
         foreach (var message in messages)
         {
-            if (message[1] == '@')
+            if (message.Count() > 0 && message?[1] == '@')
             {
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
                 Console.WriteLine(message);
             }
-            else if (message[0] == '|')
+            else if (message.Count() >= 1 && message?[0] == '|')
             {
                 Console.ForegroundColor = ConsoleColor.DarkRed;
                 Console.WriteLine(message);
@@ -355,7 +355,7 @@ public static class GameLoop
         gameState.CurrentState?.RemoveAll(e => e is Enemy enemy && enemy.HP <= 0);
     }
 
-    private static async void HandlePlayerDeath(Player player, ObjectId id)
+    private static void HandlePlayerDeath(Player player, ObjectId id)
     {
         PlayMusicLoop("ProjectFiles\\03-3.wav");
 
@@ -368,7 +368,7 @@ public static class GameLoop
         }
         while (menuChoice.Key != ConsoleKey.Enter);
         
-        await DeleteSave(id);
+        DeleteSave(id).GetAwaiter().GetResult();
     }
     static SaveInfoDTO SelectSaveFromList(char purpose)
     {
@@ -435,7 +435,7 @@ public static class GameLoop
         while (key != ConsoleKey.Y && key != ConsoleKey.N);
         if (key == ConsoleKey.Y)
         {
-            DeleteSave(selectedSave.Id);        
+            DeleteSave(selectedSave.Id).GetAwaiter().GetResult();        
         }
         Console.ResetColor();
     }
