@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace Labb2_DungeonCrawler.State
 {
-    public class SaveInfoDTO
+    public class HighScore
     {
         public ObjectId Id { get; set; }
-        public string PlayerName { get; set; } = "";
-        public int PlayerXp { get; set; } = 0;
+        public string PlayerName { get; set; }
+        public int Score { get; set; }
+        public bool IsAlive { get; set; }
     }
 }
