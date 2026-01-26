@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Labb2_DungeonCrawler.State;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -17,6 +18,18 @@ public static class Graphics
         Console.SetCursorPosition(4, 40);
         Console.ForegroundColor = ConsoleColor.Green;
         Console.Write("Press [esc] to leave and play another level (HP and XP is saved)");
+    }
+    public static void PrintHighScore(List<HighScore> highScores)
+    {
+        Console.Clear();
+        Console.SetCursorPosition(20, 7);
+        Console.WriteLine("Highscore:");
+        for (int i = 0; i < highScores.Count; i++)
+        {
+            Console.SetCursorPosition(20, 10 + i);
+            Console.WriteLine($"{i + 1}: {highScores[i].PlayerName} {highScores[i].Score}");
+        }
+
     }
     public static void WriteTitleScreen()
     {

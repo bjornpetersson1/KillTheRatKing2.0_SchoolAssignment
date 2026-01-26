@@ -29,6 +29,9 @@ public static class GameLoop
             ObjectId id;
             Console.CursorVisible = false;
             Console.Clear();
+            ShowHighScore();
+            Console.ReadKey(true);
+            Console.Clear();
             Console.SetCursorPosition(0, 10);
             Console.WriteLine("Press [L] to load, [D] to delete save and start a new game,\nanything else to just start a new game");
             var loadNewOrDelete = Console.ReadKey(true);
@@ -66,6 +69,17 @@ public static class GameLoop
             RunGameLoop(gameState, player);
             HandlePlayerDeath(player, gameState.Id);
         }
+    }
+
+    private static async void ShowHighScore()
+    {
+        var highscores = await MongoConnection.MongoConnection.GetHighScoreFromDB();
+
+        Graphics.PrintHighScore(highscores);
+        //foreach (var score in highscores)
+        //{
+        //    Console.WriteLine($"{score.PlayerName} {score.Score}");
+        //}
     }
 
     private static async void AddNewClass(string newClass)
@@ -315,6 +329,7 @@ public static class GameLoop
 
     private static async void HandlePlayerDeath(Player player, ObjectId id)
     {
+        await MongoConnection.MongoConnection.SaveHighScore(player.Name, player.XP);
         PlayMusicLoop("ProjectFiles\\03-3.wav");
 
         Graphics.WriteEndScreen(player);
