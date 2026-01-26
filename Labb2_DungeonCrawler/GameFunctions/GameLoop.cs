@@ -63,21 +63,23 @@ public static class GameLoop
             player.HP = savedHP;
             player.XP = savedXP;
             gameState.XpScore = savedXP;
+
+            ShowHighScore(gameState);
+            Console.ReadKey(true);
+            Console.Clear();
             
             SaveToDb(gameState);
 
             RunGameLoop(gameState, player);
             HandlePlayerDeath(player, id, gameState);
-            ShowHighScore(gameState);
-            Console.ReadKey(true);
         }
     }
 
-    private static async void ShowHighScore(GameState gameState)
+    private static void ShowHighScore(GameState gameState)
     {
         var player = gameState.CurrentState?.OfType<Player>().FirstOrDefault();
-        var highScoresDead = await MongoConnection.MongoConnection.GetHighScoreFromDB();
-        var highScoresAlive = await MongoConnection.MongoConnection.GetActiveSavesFromDB();
+        var highScoresDead = MongoConnection.MongoConnection.GetHighScoreFromDB().GetAwaiter().GetResult();
+        var highScoresAlive = MongoConnection.MongoConnection.GetActiveSavesFromDB().GetAwaiter().GetResult();
 
         var collectedHighScore = new List<HighScore>();
 
@@ -90,10 +92,6 @@ public static class GameLoop
 
         var sortedHighScore = collectedHighScore.OrderByDescending(s => s.Score).Take(10).ToList();
         Graphics.PrintHighScore(sortedHighScore);
-        //foreach (var score in highscores)
-        //{
-        //    Console.WriteLine($"{score.PlayerName} {score.Score}");
-        //}
     }
 
     private static async void AddNewClass(string newClass)
