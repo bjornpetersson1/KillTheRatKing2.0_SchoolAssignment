@@ -4,8 +4,6 @@ using Labb2_DungeonCrawler.Log;
 using Labb2_DungeonCrawler.State;
 using MongoDB.Bson.Serialization.Attributes;
 
-
-
     [BsonDiscriminator(RootClass = true)]
     [BsonKnownTypes(typeof(Player), typeof(Rat), typeof(Snake), typeof(TheRatKing), typeof(TheKingsTail), typeof(Wall), typeof(Lazer))]
 public abstract class LevelElement
@@ -55,6 +53,7 @@ public abstract class LevelElement
 
                     elements = LevelData.Load("ProjectFiles\\Level1.txt");
                     currentGameState.SetCurrentGame(elements);
+                    currentGameState.MessageLog.MyLog.Add("loading level 1...");
 
                     validChoiceFlag = true;
                     break;
@@ -64,6 +63,7 @@ public abstract class LevelElement
 
                     elements = LevelData.Load("ProjectFiles\\Level2.txt");
                     currentGameState.SetCurrentGame(elements);
+                    currentGameState.MessageLog.MyLog.Add("loading level 2...");
 
                     validChoiceFlag = true;
                     break;
@@ -73,6 +73,7 @@ public abstract class LevelElement
 
                     elements = LevelData.Load("ProjectFiles\\Level3.txt");
                     currentGameState.SetCurrentGame(elements);
+                    currentGameState.MessageLog.MyLog.Add("loading level 3...");
 
                     validChoiceFlag = true;
                     break;
@@ -82,6 +83,7 @@ public abstract class LevelElement
 
                     elements = LevelData.Load(RandomMap.GenerateMap());
                     currentGameState.SetCurrentGame(elements);
+                    currentGameState.MessageLog.MyLog.Add("generating a random level...");
 
                     validChoiceFlag = true;
                     break;

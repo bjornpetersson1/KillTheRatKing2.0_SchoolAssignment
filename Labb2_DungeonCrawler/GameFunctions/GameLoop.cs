@@ -11,7 +11,7 @@ public static class GameLoop
     private static string currentTrack;
 
 
-    public static async Task GameStart()
+    public static void GameStart()
     {
         //AddNewClass("Priest");
         //AddNewClass("Warrior");
@@ -65,6 +65,8 @@ public static class GameLoop
 
             player.HP = savedHP;
             player.XP = savedXP;
+            
+            SaveToDb(gameState);
 
             RunGameLoop(gameState, player);
             HandlePlayerDeath(player, gameState.Id);
@@ -168,7 +170,6 @@ public static class GameLoop
         return classes[index];
     }
 
-    //SKA DEN HÄR METODEN INTEE VARA ASYNC?
     private static GameState LoadGame(ObjectId id)
     {
         var gameState = MongoConnection.MongoConnection.LoadGameFromDB(id).GetAwaiter().GetResult();
@@ -189,6 +190,34 @@ public static class GameLoop
                                 .GetClassesFromDB()
                                 .GetAwaiter()
                                 .GetResult();
+    }
+    private static void PrintMessageLog(GameState gameState)
+    {
+        Console.Clear();
+
+        var messages = gameState.MessageLog.MyLog;
+
+        foreach (var message in messages)
+        {
+            if (message.Count() > 0 && message?[1] == '@')
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.WriteLine(message);
+            }
+            else if (message.Count() >= 1 && message?[0] == '|')
+            {
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.WriteLine(message);
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                Console.WriteLine(message);
+            }
+        }
+        Console.ResetColor();
+        Console.ReadKey(true);
+        Console.Clear();
     }
     private static List<SaveInfoDTO> GetSavesPlayerName()
     {
@@ -237,12 +266,11 @@ public static class GameLoop
     {
         while (player.HP > 0)
         {
-
             Graphics.WriteInfo();
             var menuChoice = Console.ReadKey(true);
             if (menuChoice.Key == ConsoleKey.Escape)
             {
-                MongoConnection.MongoConnection.SaveGameToDB(gameState);
+                SaveToDb(gameState);
                 Console.Clear();
                 gameState = SelectLevel(player.Name, gameState);
                 string nameHold = player.Name;
@@ -256,6 +284,12 @@ public static class GameLoop
                 player = InitGame(gameState, player.HP, player.XP);
             }
 
+            if (menuChoice.Key == ConsoleKey.L)
+            {
+                PrintMessageLog(gameState);
+                player.PrintUnitInfo();
+            }
+
             if (player.playerDirection.ContainsKey(menuChoice.Key) || menuChoice.Key == ConsoleKey.Z)
             {
                 player.Update(menuChoice);
@@ -265,8 +299,16 @@ public static class GameLoop
             UpdateEnemies(gameState);
             HandleDeadEnemies(gameState, player);
             DrawAll(gameState, player);
-            MongoConnection.MongoConnection.SaveGameToDB(gameState);
+            if (player.TurnsPlayed % 10 == 0)
+            {
+                SaveToDb(gameState);
+            }
         };
+    }
+
+    private static void SaveToDb(GameState gameState)
+    {
+        MongoConnection.MongoConnection.SaveGameToDB(gameState).GetAwaiter().GetResult();
     }
 
     private static void DrawAll(GameState gameState, Player player)
@@ -327,7 +369,7 @@ public static class GameLoop
         gameState.CurrentState?.RemoveAll(e => e is Enemy enemy && enemy.HP <= 0);
     }
 
-    private static async void HandlePlayerDeath(Player player, ObjectId id)
+    private static void HandlePlayerDeath(Player player, ObjectId id)
     {
         await MongoConnection.MongoConnection.SaveHighScore(player.Name, player.XP);
         PlayMusicLoop("ProjectFiles\\03-3.wav");
@@ -341,7 +383,7 @@ public static class GameLoop
         }
         while (menuChoice.Key != ConsoleKey.Enter);
         
-        await DeleteSave(id);
+        DeleteSave(id).GetAwaiter().GetResult();
     }
     static SaveInfoDTO SelectSaveFromList(char purpose)
     {
@@ -408,7 +450,7 @@ public static class GameLoop
         while (key != ConsoleKey.Y && key != ConsoleKey.N);
         if (key == ConsoleKey.Y)
         {
-            DeleteSave(selectedSave.Id);        
+            DeleteSave(selectedSave.Id).GetAwaiter().GetResult();        
         }
         Console.ResetColor();
     }
