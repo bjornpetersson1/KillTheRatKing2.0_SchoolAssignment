@@ -382,9 +382,9 @@ public static class GameLoop
         gameState.CurrentState?.RemoveAll(e => e is Enemy enemy && enemy.HP <= 0);
     }
 
-    private static async Task HandlePlayerDeath(Player player, ObjectId id, GameState gameState)
+    private static void HandlePlayerDeath(Player player, ObjectId id, GameState gameState)
     {
-        await MongoConnection.MongoConnection.SaveHighScore(player.Name, player.XP);
+        MongoConnection.MongoConnection.SaveHighScore(player.Name, player.XP).GetAwaiter().GetResult();
         PlayMusicLoop("ProjectFiles\\03-3.wav");
 
         Graphics.WriteEndScreen(player);
@@ -397,6 +397,7 @@ public static class GameLoop
         while (menuChoice.Key != ConsoleKey.Enter);
         
         DeleteSave(id).GetAwaiter().GetResult();
+
     }
     static SaveInfoDTO SelectSaveFromList(char purpose)
     {
