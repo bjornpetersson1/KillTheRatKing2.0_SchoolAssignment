@@ -95,14 +95,7 @@ namespace Labb2_DungeonCrawler.MongoConnection
                 .Set(g => g.MessageLog, gameState.MessageLog)
                 .Set(g => g.CurrentState, gameState.CurrentState);
 
-            await saveCollection.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = true });
-
-            //var gameStateFilter = Builders<GameState>.Filter.Eq(g => g.Id, gameState.Id);
-            //if(gameState.Id == ObjectId.Empty || gameState.Id == default)
-            //{
-            //    await saveCollection.InsertOneAsync(gameState);
-            //}
-            //else await saveCollection.ReplaceOneAsync(gameStateFilter ,gameState);
+            await saveCollection.UpdateOneAsync(filter, update);
         }
 
         public static async Task<GameState?> LoadGameFromDB(ObjectId id)
