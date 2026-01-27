@@ -13,11 +13,6 @@ public static class GameLoop
 
     public static void GameStart()
     {
-        //AddNewClass("Priest");
-        //AddNewClass("Warrior");
-        //AddNewClass("Wizard");
-        //AddNewClass("Thief");
-        //AddNewClass("Cat");
         while (true)
         {
             Graphics.WriteTitleScreen();
@@ -89,11 +84,6 @@ public static class GameLoop
         Graphics.PrintHighScore(sortedHighScore);
     }
 
-    private static async void AddNewClass(string newClass)
-    {
-        await MongoConnection.MongoConnection
-            .AddClassToCollection(newClass);
-    }
     private static void PlayMusicLoop(string path)
     {
         if (currentTrack == path)
