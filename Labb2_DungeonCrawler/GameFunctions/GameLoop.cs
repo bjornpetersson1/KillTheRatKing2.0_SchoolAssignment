@@ -24,8 +24,8 @@ public static class GameLoop
             Console.ReadKey(true);
             PlayMusicLoop("ProjectFiles\\09. Björn Petersson - Uppenbarelse.wav");
             bool isAlive = true;
-            int savedXP = 0;
-            int savedHP = 100;
+            int savedXP = -1;
+            int savedHP = -1;
             ObjectId id;
             Console.CursorVisible = false;
             Console.Clear();
@@ -60,9 +60,7 @@ public static class GameLoop
 
             player = gameState.CurrentState.OfType<Player>().First();
 
-            player.HP = savedHP;
-            player.XP = savedXP;
-            gameState.XpScore = savedXP;
+            gameState.XpScore = player.XP;
 
             ShowHighScore(gameState);
             Console.ReadKey(true);
@@ -126,7 +124,7 @@ public static class GameLoop
         player.Class = classChoice;
         player.Name = PlayerName;
 
-        InitGame(gameState, savedHP: null, savedXP: null);
+        InitGame(gameState);
 
         return gameState;
     }
@@ -190,7 +188,7 @@ public static class GameLoop
         }
 
 
-        InitGame(gameState, savedHP: null, savedXP: null);
+        InitGame(gameState);
 
         return gameState;
     }
@@ -240,7 +238,7 @@ public static class GameLoop
         await MongoConnection.MongoConnection.DeleteSaveFromDB(id);
     }
 
-    private static Player InitGame(GameState gameState, int? savedHP, int? savedXP)
+    private static Player InitGame(GameState gameState)
     {
         var player = gameState.CurrentState?
             .OfType<Player>()
@@ -248,13 +246,6 @@ public static class GameLoop
             ?? throw new ArgumentNullException("No player found.");
 
         player.LoadPlayerData();
-
-
-        if (savedHP.HasValue && savedXP.HasValue)
-        {
-            player.HP = savedHP.Value;
-            player.XP = savedXP.Value;
-        }
 
         foreach (var element in gameState.CurrentState ?? Enumerable.Empty<LevelElement>())
         {
@@ -282,6 +273,8 @@ public static class GameLoop
             {
                 SaveToDb(gameState);
                 Console.Clear();
+                int hpHold = player.HP;
+                int xpHold = player.XP;
                 gameState = SelectLevel(player.Name, gameState);
                 string nameHold = player.Name;
                 string classHold = player.Class;
@@ -291,7 +284,9 @@ public static class GameLoop
                     ?? throw new ArgumentNullException("No player found.");
                 player.Name = nameHold;
                 player.Class = classHold;
-                player = InitGame(gameState, player.HP, player.XP);
+                player.XP = xpHold;
+                player.HP = hpHold;
+                player = InitGame(gameState);
             }
 
             if (menuChoice.Key == ConsoleKey.L)
@@ -385,6 +380,7 @@ public static class GameLoop
     private static void HandlePlayerDeath(Player player, ObjectId id, GameState gameState)
     {
         MongoConnection.MongoConnection.SaveHighScore(player.Name, player.XP).GetAwaiter().GetResult();
+        DeleteSave(id).GetAwaiter().GetResult();
         PlayMusicLoop("ProjectFiles\\03-3.wav");
 
         Graphics.WriteEndScreen(player);
@@ -396,7 +392,6 @@ public static class GameLoop
         }
         while (menuChoice.Key != ConsoleKey.Enter);
         
-        DeleteSave(id).GetAwaiter().GetResult();
 
     }
     static SaveInfoDTO SelectSaveFromList(char purpose)
