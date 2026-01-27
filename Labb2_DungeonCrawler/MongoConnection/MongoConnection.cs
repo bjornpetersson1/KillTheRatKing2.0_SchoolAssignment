@@ -78,12 +78,31 @@ namespace Labb2_DungeonCrawler.MongoConnection
         public static async Task SaveGameToDB(GameState gameState)
         {
             await ConnectToDB();
-            var gameStateFilter = Builders<GameState>.Filter.Eq(g => g.Id, gameState.Id);
-            if(gameState.Id == ObjectId.Empty || gameState.Id == default)
+
+            if (gameState.Id == ObjectId.Empty)
             {
                 await saveCollection.InsertOneAsync(gameState);
+                return;
             }
-            else await saveCollection.ReplaceOneAsync(gameStateFilter ,gameState);
+
+            var filter = Builders<GameState>.Filter.Eq(g => g.Id, gameState.Id);
+
+            var update = Builders<GameState>.Update
+                .Set(g => g.PlayerName, gameState.PlayerName)
+                .Set(g => g.ClassId, gameState.ClassId)
+                .Set(g => g.XpScore, gameState.XpScore)
+                .Set(g => g.ActiveLevel, gameState.ActiveLevel)
+                .Set(g => g.MessageLog, gameState.MessageLog)
+                .Set(g => g.CurrentState, gameState.CurrentState);
+
+            await saveCollection.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = true });
+
+            //var gameStateFilter = Builders<GameState>.Filter.Eq(g => g.Id, gameState.Id);
+            //if(gameState.Id == ObjectId.Empty || gameState.Id == default)
+            //{
+            //    await saveCollection.InsertOneAsync(gameState);
+            //}
+            //else await saveCollection.ReplaceOneAsync(gameStateFilter ,gameState);
         }
 
         public static async Task<GameState?> LoadGameFromDB(ObjectId id)
@@ -110,7 +129,8 @@ namespace Labb2_DungeonCrawler.MongoConnection
                                 Id = g.Id,
                                 PlayerName = g.PlayerName,
                                 PlayerXp = g.XpScore,
-                                AktiveLevelName = g.ActiveLevel
+                                AktiveLevelName = g.ActiveLevel,
+                                CreatedAt = g.CreatedDateTime
                             })
                             .ToListAsync();
         }
