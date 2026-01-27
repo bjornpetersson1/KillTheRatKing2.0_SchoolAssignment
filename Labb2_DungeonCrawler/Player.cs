@@ -2,10 +2,13 @@
 using Labb2_DungeonCrawler.Log;
 using Labb2_DungeonCrawler.State;
 using MongoDB.Bson.Serialization.Attributes;
+using NAudio.Wave;
 using SharpCompress;
+using SharpCompress.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Media;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,7 +19,6 @@ public class Player : LevelElement
 {
     [BsonIgnore]
     public ConsoleKey LastMove { get; set; }
-
     public int lastX { get; set; }
     public int lastY { get; set; }
     public string Class { get; set; }
@@ -142,9 +144,14 @@ public class Player : LevelElement
         if (userMove.Key == ConsoleKey.Z)
         {
             var facing = GetFacingFromPosition();
+            PlaySound("ProjectFiles\\lazer_shot.wav", 0.3f);
             LazerShootMethod(facing, 3);
         }
-        else PlayerMoveMethod(userMove);
+        else 
+        {
+            PlaySound("ProjectFiles\\step.wav", 0.3f);
+            PlayerMoveMethod(userMove);
+        }
     }
     private ConsoleKey GetFacingFromPosition()
     {
@@ -154,5 +161,19 @@ public class Player : LevelElement
         if (yCordinate < lastY) return ConsoleKey.UpArrow;
 
         return LastMove;
+    }
+    public void PlaySound(string path, float volume = 1.0f)
+    {
+        var _sound = new AudioFileReader(path) { Volume = volume };
+        var _soundPlayer = new WaveOutEvent();
+
+        _soundPlayer.Init(_sound);
+        _soundPlayer.Play();
+
+        _soundPlayer.PlaybackStopped += (s, e) =>
+        {
+            _soundPlayer.Dispose();
+            _sound.Dispose();
+        };
     }
 }

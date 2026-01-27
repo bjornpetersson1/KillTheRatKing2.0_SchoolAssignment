@@ -1,5 +1,6 @@
 ﻿using Labb2_DungeonCrawler.State;
 using MongoDB.Bson;
+using NAudio.Wave;
 using System.IO;
 using System.Media;
 
@@ -7,7 +8,8 @@ namespace Labb2_DungeonCrawler;
 
 public static class GameLoop
 {
-    private static SoundPlayer musicPlayer;
+    private static AudioFileReader musicTrack;
+    private static WaveOutEvent musicPlayer;
     private static string currentTrack;
 
 
@@ -89,11 +91,27 @@ public static class GameLoop
         if (currentTrack == path)
             return;
 
-        musicPlayer?.Stop();
+        StopMusic();
 
-        musicPlayer = new SoundPlayer(path);
-        musicPlayer.PlayLooping();
+        musicTrack = new AudioFileReader(path);
+        musicPlayer = new WaveOutEvent();
+
+        musicPlayer.PlaybackStopped += (s, e) =>
+        {
+            musicTrack.Position = 0;
+            musicPlayer.Play();
+        };
+
+        musicPlayer.Init(musicTrack);
+        musicPlayer.Play();
+
         currentTrack = path;
+    }
+    private static void StopMusic()
+    {
+        musicPlayer?.Stop();
+        musicPlayer?.Dispose();
+        musicTrack?.Dispose();
     }
 
     private static GameState StartNewGame()
