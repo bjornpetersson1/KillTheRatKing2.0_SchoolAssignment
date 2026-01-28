@@ -25,6 +25,8 @@ public class Player : LevelElement
 
     [BsonIgnore]
     public Dictionary<ConsoleKey, int> playerDirection;
+    [BsonIgnore]
+    private static readonly SemaphoreSlim _soundLimiter = new SemaphoreSlim(3);
     public Player(string name = "player")
     {
         AttackDice = new Dice(6, 2, 2);
@@ -55,7 +57,7 @@ public class Player : LevelElement
         Console.WriteLine(returnMessage);
         return returnMessage;
     }
-    private void PlayerMoveMethod(ConsoleKeyInfo userMove)
+    private async Task PlayerMoveMethod(ConsoleKeyInfo userMove)
     {
         int hold;
         LastMove = userMove.Key;
@@ -71,6 +73,7 @@ public class Player : LevelElement
         }
         if (!this.IsSpaceAvailable())
         {
+            await PlaySound("ProjectFiles\\grunt.wav", 0.5f);
             CollideAndConcequences(this);
             if (userMove.Key == ConsoleKey.UpArrow || userMove.Key == ConsoleKey.DownArrow) this.yCordinate = hold;
             else this.xCordinate = hold;
@@ -126,7 +129,7 @@ public class Player : LevelElement
         LastMove = ConsoleKey.RightArrow;
     }
 
-    public void Update(ConsoleKeyInfo userMove)
+    public async Task Update(ConsoleKeyInfo userMove)
     {
         lastX = xCordinate;
         lastY = yCordinate;
@@ -144,13 +147,13 @@ public class Player : LevelElement
         if (userMove.Key == ConsoleKey.Z)
         {
             var facing = GetFacingFromPosition();
-            PlaySound("ProjectFiles\\lazer_shot.wav", 0.3f);
+            await PlaySound("ProjectFiles\\lazer_shot.wav", 0.3f);
             LazerShootMethod(facing, 3);
         }
         else 
         {
-            PlaySound("ProjectFiles\\step.wav", 0.3f);
-            PlayerMoveMethod(userMove);
+            await PlaySound("ProjectFiles\\step.wav", 0.3f);
+            await PlayerMoveMethod(userMove);
         }
     }
     private ConsoleKey GetFacingFromPosition()
@@ -162,8 +165,11 @@ public class Player : LevelElement
 
         return LastMove;
     }
-    public void PlaySound(string path, float volume = 1.0f)
+    public async Task PlaySound(string path, float volume = 1.0f)
     {
+        if (!await _soundLimiter.WaitAsync(0))
+            return;
+
         var _sound = new AudioFileReader(path) { Volume = volume };
         var _soundPlayer = new WaveOutEvent();
 
@@ -174,6 +180,7 @@ public class Player : LevelElement
         {
             _soundPlayer.Dispose();
             _sound.Dispose();
+            _soundLimiter.Release();
         };
     }
 }

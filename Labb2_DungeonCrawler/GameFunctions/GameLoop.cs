@@ -1,4 +1,5 @@
-﻿using Labb2_DungeonCrawler.Menu;
+﻿using Labb2_DungeonCrawler.MusicAndSounds;
+using Labb2_DungeonCrawler.Menu;
 using Labb2_DungeonCrawler.State;
 using MongoDB.Bson;
 using NAudio.Wave;
@@ -90,13 +91,13 @@ public static class GameLoop
                     continue;
             }
 
-            var loadNewOrDelete = Console.ReadKey(true);
-            if (loadNewOrDelete.Key == ConsoleKey.L)
-            {
-                var selectedSave = await SelectSaveFromList();
-                if (selectedSave == null) continue;
-                id = selectedSave.Id;
-            }
+            //var loadNewOrDelete = Console.ReadKey(true);
+            //if (loadNewOrDelete.Key == ConsoleKey.L)
+            //{
+            //    var selectedSave = await SelectSaveFromList();
+            //    if (selectedSave == null) continue;
+            //    id = selectedSave.Id;
+            //}
 
             //var loadNewOrDelete = Console.ReadKey(true);
             //if (loadNewOrDelete.Key == ConsoleKey.D)
@@ -169,32 +170,26 @@ public static class GameLoop
 
     private static void PlayMusicLoop(string path)
     {
-        if (currentTrack == path)
-            return;
-
         StopMusic();
 
         musicTrack = new AudioFileReader(path);
-        musicPlayer = new WaveOutEvent();
+        var loop = new LoopStream(musicTrack);
 
+        musicPlayer = new WaveOutEvent();
         musicPlayer.Init(musicTrack);
         musicPlayer.Play();
-
-        musicPlayer.PlaybackStopped += (s, e) =>
-        {
-            musicPlayer.Init(musicTrack);
-            musicTrack.Position = 0;
-            musicPlayer.Play();
-        };
-
-
-        currentTrack = path;
     }
     private static void StopMusic()
     {
-        musicPlayer?.Stop();
-        musicPlayer?.Dispose();
+        if (musicPlayer == null)
+            return;
+
+        musicPlayer.Stop();
+        musicPlayer.Dispose();
+        musicPlayer = null;
+
         musicTrack?.Dispose();
+        musicTrack = null;
     }
 
     private static async Task<GameState> StartNewGame()
@@ -379,7 +374,7 @@ public static class GameLoop
 
             if (player.playerDirection.ContainsKey(menuChoice.Key) || menuChoice.Key == ConsoleKey.Z)
             {
-                player.Update(menuChoice);
+                await player.Update(menuChoice);
             }
 
             UpdateWalls(gameState);

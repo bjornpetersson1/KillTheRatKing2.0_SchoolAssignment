@@ -13,20 +13,30 @@ public static class MenuHelper
         int index = startIndex;
         ConsoleKey key;
 
+        Console.Clear();
+        ColorFlashWrite(title);
+       
+        Console.WriteLine();
+        Console.WriteLine();
+
+        int menuTop = Console.CursorTop;
+        int menuLeft = Console.CursorLeft;
+
         do
         {
-            Console.Clear();
-            Console.WriteLine(title);
-            Console.WriteLine();
+            Console.SetCursorPosition(menuLeft, menuTop);
 
             for (int i = 0; i < options.Count; i++)
             {
                 if (i == index)
-                    Console.ForegroundColor = ConsoleColor.Green;
+                {
+                    ColorFlashWrite($"> {options[i]}    ");
+                }
                 else
+                {
                     Console.ForegroundColor = ConsoleColor.Gray;
-
-                Console.WriteLine((i == index ? "> " : "  ") + options[i]);
+                    Console.WriteLine($"  {options[i]}");
+                }
             }
 
             Console.ResetColor();
@@ -55,5 +65,25 @@ public static class MenuHelper
         } while (key != ConsoleKey.Y && key != ConsoleKey.N);
 
         return key == ConsoleKey.Y;
+    }
+    private static void ColorFlashWrite(string input)
+    {
+        ConsoleColor[] colors =
+        {
+            ConsoleColor.DarkGreen,
+            ConsoleColor.DarkRed,
+            ConsoleColor.DarkGray,
+            ConsoleColor.White
+        };
+        int inputTop = Console.CursorTop;
+        int inputLeft = Console.CursorLeft;
+
+        for (int i = 0; i < colors.Length; i++)
+        {
+            Console.SetCursorPosition(inputLeft, inputTop);
+            Console.ForegroundColor = colors[i];
+            Thread.Sleep(100);
+            Console.WriteLine(input);
+        }
     }
 }
