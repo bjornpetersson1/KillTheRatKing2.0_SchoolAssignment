@@ -25,6 +25,8 @@ public class Player : LevelElement
 
     [BsonIgnore]
     public Dictionary<ConsoleKey, int> playerDirection;
+    [BsonIgnore]
+    private static readonly SemaphoreSlim _soundLimiter = new SemaphoreSlim(3);
     public Player(string name = "player")
     {
         AttackDice = new Dice(6, 2, 2);
@@ -162,8 +164,11 @@ public class Player : LevelElement
 
         return LastMove;
     }
-    public void PlaySound(string path, float volume = 1.0f)
+    public async void PlaySound(string path, float volume = 1.0f)
     {
+        if (!await _soundLimiter.WaitAsync(0))
+            return;
+
         var _sound = new AudioFileReader(path) { Volume = volume };
         var _soundPlayer = new WaveOutEvent();
 
@@ -174,6 +179,7 @@ public class Player : LevelElement
         {
             _soundPlayer.Dispose();
             _sound.Dispose();
+            _soundLimiter.Release();
         };
     }
 }
