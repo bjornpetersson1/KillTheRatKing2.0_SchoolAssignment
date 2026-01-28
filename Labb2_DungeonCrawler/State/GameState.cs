@@ -18,13 +18,15 @@ namespace Labb2_DungeonCrawler.State
         public int XpScore { get; set; }
         public string ActiveLevel { get; set; }
         public MessageLog MessageLog { get; set; }
-        public List<LevelElement> CurrentState { get; set; }  
+        public List<LevelElement> CurrentState { get; set; }
+        public DateTime CreatedDateTime { get; set; }
         public GameState(string userName)
         {
             Id = new ObjectId();
             PlayerName = userName;
             MessageLog = new MessageLog();
             CurrentState = new List<LevelElement>();
+            CreatedDateTime = DateTime.UtcNow;
         }
 
         public void SetCurrentGame(List<LevelElement> elements)

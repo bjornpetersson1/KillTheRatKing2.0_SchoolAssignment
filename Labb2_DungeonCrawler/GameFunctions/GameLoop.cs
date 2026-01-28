@@ -1,5 +1,6 @@
 ﻿using Labb2_DungeonCrawler.State;
 using MongoDB.Bson;
+using NAudio.Wave;
 using System.IO;
 using System.Media;
 
@@ -7,17 +8,13 @@ namespace Labb2_DungeonCrawler;
 
 public static class GameLoop
 {
-    private static SoundPlayer musicPlayer;
+    private static AudioFileReader musicTrack;
+    private static WaveOutEvent musicPlayer;
     private static string currentTrack;
 
 
     public static void GameStart()
     {
-        //AddNewClass("Priest");
-        //AddNewClass("Warrior");
-        //AddNewClass("Wizard");
-        //AddNewClass("Thief");
-        //AddNewClass("Cat");
         while (true)
         {
             Graphics.WriteTitleScreen();
@@ -89,21 +86,32 @@ public static class GameLoop
         Graphics.PrintHighScore(sortedHighScore);
     }
 
-    private static async void AddNewClass(string newClass)
-    {
-        await MongoConnection.MongoConnection
-            .AddClassToCollection(newClass);
-    }
     private static void PlayMusicLoop(string path)
     {
         if (currentTrack == path)
             return;
 
-        musicPlayer?.Stop();
+        StopMusic();
 
-        musicPlayer = new SoundPlayer(path);
-        musicPlayer.PlayLooping();
+        musicTrack = new AudioFileReader(path);
+        musicPlayer = new WaveOutEvent();
+
+        musicPlayer.PlaybackStopped += (s, e) =>
+        {
+            musicTrack.Position = 0;
+            musicPlayer.Play();
+        };
+
+        musicPlayer.Init(musicTrack);
+        musicPlayer.Play();
+
         currentTrack = path;
+    }
+    private static void StopMusic()
+    {
+        musicPlayer?.Stop();
+        musicPlayer?.Dispose();
+        musicTrack?.Dispose();
     }
 
     private static GameState StartNewGame()
@@ -416,12 +424,12 @@ public static class GameLoop
                 if (i == index)
                 {
                     Console.ForegroundColor = selectedColor;
-                    Console.WriteLine($">    {saves[i].PlayerName}, level {saves[i].AktiveLevelName}, {saves[i].PlayerXp} xp, {saves[i].Id.ToString().Substring(saves[i].Id.ToString().Length - 5)}");
+                    Console.WriteLine($">    {saves[i].PlayerName}, level {saves[i].AktiveLevelName}, {saves[i].PlayerXp} xp\n                     created {saves[i].CreatedAt}");
                 }
                 else
                 {
                     Console.ForegroundColor = notSelectedColor;
-                    Console.WriteLine($"    {saves[i].PlayerName}, level {saves[i].AktiveLevelName}, {saves[i].PlayerXp} xp, {saves[i].Id.ToString().Substring(saves[i].Id.ToString().Length - 5)}");
+                    Console.WriteLine($"    {saves[i].PlayerName}, level {saves[i].AktiveLevelName}, {saves[i].PlayerXp} xp\n                    created {saves[i].CreatedAt}");
                 }
             }
 

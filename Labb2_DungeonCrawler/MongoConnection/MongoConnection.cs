@@ -20,17 +20,35 @@ namespace Labb2_DungeonCrawler.MongoConnection
         private static IMongoCollection<ClassModel> classCollection;
         private static IMongoCollection<HighScore> highScoreCollection;
 
-        static void ConnectToDB()
+        static async Task ConnectToDB()
         {
             var client = new MongoClient(connectionString);
             var db = client.GetDatabase(dataBaseName);
             saveCollection = db.GetCollection<GameState>(saveCollectionName);
             classCollection = db.GetCollection<ClassModel>(classCollectionName);
             highScoreCollection = db.GetCollection<HighScore>(highScoreCollectionName);
+
+            var collections = db.ListCollectionNames().ToList();
+            bool classExists = collections.Contains(classCollectionName);
+            if (!classExists)
+            {
+                var defaultClasses = new List<ClassModel>
+                    {
+                        new ClassModel { ClassName = "Priest" },
+                        new ClassModel { ClassName = "Warrior" },
+                        new ClassModel { ClassName = "Wizard" },
+                        new ClassModel { ClassName = "Thief" },
+                        new ClassModel { ClassName = "Cat" },
+                        new ClassModel { ClassName = "Cristode" },
+                        new ClassModel { ClassName = "Dog" }
+                    };
+
+                await classCollection.InsertManyAsync(defaultClasses);
+            }
         }
         public static async Task SaveHighScore( string playerName, int score)
         {
-            ConnectToDB();
+            await ConnectToDB();
             var scoreModel = new HighScore { PlayerName = playerName, Score = score, IsAlive = false };
             await highScoreCollection.InsertOneAsync(scoreModel);
 
@@ -38,7 +56,7 @@ namespace Labb2_DungeonCrawler.MongoConnection
 
         public static async Task<List<HighScore>> GetHighScoreFromDB()
         {
-            ConnectToDB();
+            await ConnectToDB();
 
             return await highScoreCollection
                 .Find(Builders<HighScore>.Filter.Empty)
@@ -54,38 +72,49 @@ namespace Labb2_DungeonCrawler.MongoConnection
 
         public static async Task AddClassToCollection(string newClass)
         {
-            ConnectToDB();
             var classModel = new ClassModel {ClassName = newClass};
             await classCollection.InsertOneAsync(classModel);
         }
         public static async Task SaveGameToDB(GameState gameState)
         {
-            ConnectToDB();
-            var gameStateFilter = Builders<GameState>.Filter.Eq(g => g.Id, gameState.Id);
-            if(gameState.Id == ObjectId.Empty || gameState.Id == default)
+            await ConnectToDB();
+
+            if (gameState.Id == ObjectId.Empty)
             {
                 await saveCollection.InsertOneAsync(gameState);
+                return;
             }
-            else await saveCollection.ReplaceOneAsync(gameStateFilter ,gameState);
+
+            var filter = Builders<GameState>.Filter.Eq(g => g.Id, gameState.Id);
+
+            var update = Builders<GameState>.Update
+                .Set(g => g.PlayerName, gameState.PlayerName)
+                .Set(g => g.ClassId, gameState.ClassId)
+                .Set(g => g.XpScore, gameState.XpScore)
+                .Set(g => g.ActiveLevel, gameState.ActiveLevel)
+                .Set(g => g.MessageLog, gameState.MessageLog)
+                .Set(g => g.CurrentState, gameState.CurrentState);
+
+            await saveCollection.UpdateOneAsync(filter, update);
         }
 
         public static async Task<GameState?> LoadGameFromDB(ObjectId id)
         {
-            ConnectToDB();
+            await ConnectToDB();
             var filter = Builders<GameState>.Filter.Eq(g => g.Id, id);
             return await saveCollection.Find(filter).FirstOrDefaultAsync();         
         }
 
         public static async Task DeleteSaveFromDB(ObjectId id)
         {
-            ConnectToDB();
+            await ConnectToDB();
             var filter = Builders<GameState>.Filter.Eq(g => g.Id, id);
             await saveCollection.DeleteOneAsync(filter);
 
         }
         public static async Task<List<SaveInfoDTO>> GetActiveSavesFromDB()
         {
-            ConnectToDB();
+            await ConnectToDB();
             return await saveCollection
                             .Find(Builders<GameState>.Filter.Empty)
                             .Project(g => new SaveInfoDTO
@@ -93,13 +122,14 @@ namespace Labb2_DungeonCrawler.MongoConnection
                                 Id = g.Id,
                                 PlayerName = g.PlayerName,
                                 PlayerXp = g.XpScore,
-                                AktiveLevelName = g.ActiveLevel
+                                AktiveLevelName = g.ActiveLevel,
+                                CreatedAt = g.CreatedDateTime
                             })
                             .ToListAsync();
         }
         public static async Task<List<string>> GetClassesFromDB()
         {
-            ConnectToDB();
+            await ConnectToDB();
             return await classCollection
                             .Find(Builders<ClassModel>.Filter.Empty)
                             .Project(c => c.ClassName)
@@ -107,7 +137,7 @@ namespace Labb2_DungeonCrawler.MongoConnection
         }
         public static async Task<ObjectId> GetClassId(string className)
         {
-            ConnectToDB();
+            await ConnectToDB();
             return await classCollection
                             .Find(Builders<ClassModel>
                             .Filter.Eq(c => c.ClassName, className))

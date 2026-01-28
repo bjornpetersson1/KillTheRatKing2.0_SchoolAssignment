@@ -10,9 +10,12 @@
   <ItemGroup>
     <None Remove="ProjectFiles\03-3.wav" />
     <None Remove="ProjectFiles\09. Björn Petersson - Uppenbarelse.wav" />
+    <None Remove="ProjectFiles\grunt.wav" />
+    <None Remove="ProjectFiles\lazer_shot.wav" />
     <None Remove="ProjectFiles\Level1.txt" />
     <None Remove="ProjectFiles\Level2.txt" />
     <None Remove="ProjectFiles\Level3.txt" />
+    <None Remove="ProjectFiles\step.wav" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +23,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ProjectFiles\09. Björn Petersson - Uppenbarelse.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectFiles\grunt.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ProjectFiles\lazer_shot.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ProjectFiles\Level1.txt">
@@ -31,10 +40,14 @@
     <Content Include="ProjectFiles\Level3.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="ProjectFiles\step.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" Version="3.6.0" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="System.Windows.Extensions" Version="9.0.9" />
   </ItemGroup>
 
