@@ -1,6 +1,8 @@
-﻿using Labb2_DungeonCrawler.State;
+﻿using Labb2_DungeonCrawler.Menu;
+using Labb2_DungeonCrawler.State;
 using MongoDB.Bson;
 using NAudio.Wave;
+using System.Collections.Generic;
 using System.IO;
 using System.Media;
 
@@ -20,26 +22,83 @@ public static class GameLoop
             Graphics.WriteTitleScreen();
             Console.ReadKey(true);
             PlayMusicLoop("ProjectFiles\\09. Björn Petersson - Uppenbarelse.wav");
-            ObjectId id;
             Console.CursorVisible = false;
-            Console.Clear();
-            Console.SetCursorPosition(0, 10);
-            Console.WriteLine("Press [L] to load, [D] to delete save and start a new game,\nanything else to just start a new game");
-            var loadNewOrDelete = Console.ReadKey(true);
-            if (loadNewOrDelete.Key == ConsoleKey.D)
+
+            var saves = await GetSavesPlayerName();
+            bool hasSaves = saves.Any();
+
+            var mainMenuOptions = new List<string>
             {
-                var selectedSave = await SelectSaveFromList('D');
-                await ConfirmSaveDelete(selectedSave);
+                "Continue",
+                "Load Save",
+                "New Game",
+                "High Score"
+            };
+            int mainChoice = MenuHelper.ShowMenu("=== MAIN MENU ===", mainMenuOptions);
+
+            ObjectId id = ObjectId.Empty;
+
+
+            //Console.Clear();
+            //Console.SetCursorPosition(0, 10);
+            //Console.WriteLine("Press [L] to load, [D] to delete save and start a new game,\nanything else to just start a new game");
+
+            switch (mainChoice)
+            {
+                case -1: continue;
+
+                case 0:
+                    if (!hasSaves)
+                    {
+                        Console.Clear();
+                        Console.WriteLine("No save!");
+                        Console.ReadKey(true);
+                        continue;
+                    }
+                    id = saves.First().Id;
+                    break;
+
+                case 1:
+                    var selectedSave = await SelectSaveFromList();
+                    if (selectedSave == null) continue;
+                    id = selectedSave.Id;
+                    break;
+
+                case 2:
+                    id = ObjectId.Empty;
+                    break;
+
+                case 3:
+                    await ShowHighScore();
+                    continue;
+
+                default:
+                    continue;
             }
+
+            var loadNewOrDelete = Console.ReadKey(true);
             if (loadNewOrDelete.Key == ConsoleKey.L)
             {
-                var selectedSave = await SelectSaveFromList('L');
+                var selectedSave = await SelectSaveFromList();
+                if (selectedSave == null) continue;
                 id = selectedSave.Id;
             }
-            else
-            {
-                id = ObjectId.Empty;
-            }
+
+            //var loadNewOrDelete = Console.ReadKey(true);
+            //if (loadNewOrDelete.Key == ConsoleKey.D)
+            //{
+            //    var selectedSave = await SelectSaveFromList('D');
+            //    await ConfirmSaveDelete(selectedSave);
+            //}
+            //if (loadNewOrDelete.Key == ConsoleKey.L)
+            //{
+            //    var selectedSave = await SelectSaveFromList('L');
+            //    id = selectedSave.Id;
+            //}
+            //else
+            //{
+            //    id = ObjectId.Empty;
+            //}
 
             GameState gameState;
             Player player;
@@ -56,34 +115,42 @@ public static class GameLoop
 
             gameState.XpScore = player.XP;
 
-            await ShowHighScore(gameState);
-            Console.ReadKey(true);
-            Console.Clear();
+            //await ShowHighScore(gameState);
+            //Console.ReadKey(true);
+            //Console.Clear();
             
             await SaveToDb(gameState);
 
             await RunGameLoop(gameState, player);
-            HandlePlayerDeath(player, id, gameState);
+            await HandlePlayerDeath(player, id, gameState);
         }
     }
 
-    private static async Task ShowHighScore(GameState gameState)
+    private static async Task ShowHighScore()
     {
-        var player = gameState.CurrentState?.OfType<Player>().FirstOrDefault();
+        //var player = gameState.CurrentState?.OfType<Player>().FirstOrDefault();
         var highScoresDead = await MongoConnection.MongoConnection.GetHighScoreFromDB();
         var highScoresAlive = await MongoConnection.MongoConnection.GetActiveSavesFromDB();
 
         var collectedHighScore = new List<HighScore>();
 
-        collectedHighScore = highScoresDead;
+        collectedHighScore.AddRange(highScoresDead);
 
         foreach (var item in highScoresAlive)
         {
-            collectedHighScore.Add(new HighScore { IsAlive = true, PlayerName = item.PlayerName, Score = item.PlayerXp });
+            collectedHighScore.Add(new HighScore 
+            { 
+                IsAlive = true, 
+                PlayerName = item.PlayerName, 
+                Score = item.PlayerXp 
+            });
         }
 
         var sortedHighScore = collectedHighScore.OrderByDescending(s => s.Score).Take(10).ToList();
         Graphics.PrintHighScore(sortedHighScore);
+
+        Console.WriteLine("\nPress any key to return to main menu...");
+        Console.ReadKey(true);
     }
 
     private static void PlayMusicLoop(string path)
@@ -381,7 +448,7 @@ public static class GameLoop
     private static async Task HandlePlayerDeath(Player player, ObjectId id, GameState gameState)
     {
         await MongoConnection.MongoConnection.SaveHighScore(player.Name, player.XP);
-        DeleteSave(id).GetAwaiter().GetResult();
+        await DeleteSave(id);
         PlayMusicLoop("ProjectFiles\\03-3.wav");
 
         Graphics.WriteEndScreen(player);
@@ -395,56 +462,72 @@ public static class GameLoop
         
 
     }
-    static async Task<SaveInfoDTO> SelectSaveFromList(char purpose)
+    static async Task<SaveInfoDTO> SelectSaveFromList()
     {
         var saves = await GetSavesPlayerName();
-        int index = 0;
-        ConsoleKey key;
-        var selectedColor = new ConsoleColor();
-        var notSelectedColor = new ConsoleColor();
-        if (purpose == 'D')
-        {
-            notSelectedColor = ConsoleColor.Green;
-            selectedColor = ConsoleColor.Red;
-        }
-        else
-        {
-            notSelectedColor = ConsoleColor.Red;
-            selectedColor = ConsoleColor.Green;
-        }
-        do
+
+        if (saves.Count == 0)
         {
             Console.Clear();
+            Console.WriteLine("No saves. Press any key to return...");
+            Console.ReadKey(true);
+            return null;
+        }
 
-            for (int i = 0; i < saves.Count; i++)
-            {
-                if (i == index)
-                {
-                    Console.ForegroundColor = selectedColor;
-                    Console.WriteLine($">    {saves[i].PlayerName}, level {saves[i].AktiveLevelName}, {saves[i].PlayerXp} xp\n                     created {saves[i].CreatedAt}");
-                }
-                else
-                {
-                    Console.ForegroundColor = notSelectedColor;
-                    Console.WriteLine($"    {saves[i].PlayerName}, level {saves[i].AktiveLevelName}, {saves[i].PlayerXp} xp\n                    created {saves[i].CreatedAt}");
-                }
-            }
+        var options = saves.Select(s => $"{s.PlayerName}, level {s.AktiveLevelName}, {s.PlayerXp} xp").ToList();
 
-            Console.ResetColor();
+        int selectedIndex = MenuHelper.ShowMenu("Select save:", options);
+        if (selectedIndex == -1) return null;
 
-            key = Console.ReadKey(true).Key;
+        return saves[selectedIndex];
 
-            if (key == ConsoleKey.UpArrow && index > 0)
-                index--;
-            else if (key == ConsoleKey.DownArrow && index < saves.Count - 1)
-                index++;
+        //int index = 0;
+        //ConsoleKey key;
+        //var selectedColor = new ConsoleColor();
+        //var notSelectedColor = new ConsoleColor();
+        //if (purpose == 'D')
+        //{
+        //    notSelectedColor = ConsoleColor.Green;
+        //    selectedColor = ConsoleColor.Red;
+        //}
+        //else
+        //{
+        //    notSelectedColor = ConsoleColor.Red;
+        //    selectedColor = ConsoleColor.Green;
+        //}
+        //do
+        //{
+        //    Console.Clear();
 
-        } while (key != ConsoleKey.Enter);
+        //    for (int i = 0; i < saves.Count; i++)
+        //    {
+        //        if (i == index)
+        //        {
+        //            Console.ForegroundColor = selectedColor;
+        //            Console.WriteLine($">    {saves[i].PlayerName}, level {saves[i].AktiveLevelName}, {saves[i].PlayerXp} xp\n                     created {saves[i].CreatedAt}");
+        //        }
+        //        else
+        //        {
+        //            Console.ForegroundColor = notSelectedColor;
+        //            Console.WriteLine($"    {saves[i].PlayerName}, level {saves[i].AktiveLevelName}, {saves[i].PlayerXp} xp\n                    created {saves[i].CreatedAt}");
+        //        }
+        //    }
 
-        Console.ResetColor();
-        Console.Clear();
+        //    Console.ResetColor();
 
-        return saves[index];
+        //    key = Console.ReadKey(true).Key;
+
+        //    if (key == ConsoleKey.UpArrow && index > 0)
+        //        index--;
+        //    else if (key == ConsoleKey.DownArrow && index < saves.Count - 1)
+        //        index++;
+
+        //} while (key != ConsoleKey.Enter);
+
+        //Console.ResetColor();
+        //Console.Clear();
+
+        //return saves[index];
     }
     static async Task ConfirmSaveDelete(SaveInfoDTO selectedSave)
     {
