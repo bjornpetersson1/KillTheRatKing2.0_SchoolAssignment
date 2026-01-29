@@ -1,8 +1,10 @@
 ﻿using Labb2_DungeonCrawler;
 using Labb2_DungeonCrawler.GameFunctions;
 using Labb2_DungeonCrawler.Log;
+using Labb2_DungeonCrawler.Menu;
 using Labb2_DungeonCrawler.State;
 using MongoDB.Bson.Serialization.Attributes;
+using System.Xml.Linq;
 
     [BsonDiscriminator(RootClass = true)]
     [BsonKnownTypes(typeof(Player), typeof(Rat), typeof(Snake), typeof(TheRatKing), typeof(TheKingsTail), typeof(Wall), typeof(Lazer))]
@@ -36,87 +38,73 @@ public abstract class LevelElement
     {
         return "";
     }
-    public static void LevelChoice(GameState currentGameState)
+    public static void LevelChoice(string playerName, GameState gameState)
     {
-        ConsoleKeyInfo userChoice;
-        bool validChoiceFlag = false;
-        Console.ForegroundColor = ConsoleColor.Green;
-        do
+        var options = new List<MenuOption>()
         {
-            userChoice = Console.ReadKey(true);
-            List<LevelElement>? elements = null;
-            switch (userChoice.Key)
-            {
-                case ConsoleKey.D1:
-                    Console.SetCursorPosition(15, 16);
-                    Console.Write("press [1] to play level 1");
+            new MenuOption("Level 1"),
+            new MenuOption("Level 2"),
+            new MenuOption("Level 3"),
+            new MenuOption("Generate level")
+        };
+        int index = MenuHelper.ShowMenu($"=== {playerName} ===", options);
 
-                    elements = LevelData.Load("ProjectFiles\\Level1.txt");
-                    currentGameState.SetCurrentGame(elements);
-                    currentGameState.MessageLog.MyLog.Add("loading level 1...");
-                    currentGameState.ActiveLevel = "1";
+        switch (index)
+        {
+            case -1:
+                break;
+            case 0:
+                gameState.SetCurrentGame(LevelData.Load("ProjectFiles\\Level1.txt"));
+                gameState.MessageLog.MyLog.Add("loading level 1...");
+                gameState.ActiveLevel = "1";
+                break;
 
-                    validChoiceFlag = true;
-                    break;
-                case ConsoleKey.D2:
-                    Console.SetCursorPosition(15, 17);
-                    Console.Write("press [2] to play level 2");
+            case 1:
+                gameState.SetCurrentGame(LevelData.Load("ProjectFiles\\Level2.txt"));
+                gameState.MessageLog.MyLog.Add("loading level 2...");
+                gameState.ActiveLevel = "2";
+                break;
 
-                    elements = LevelData.Load("ProjectFiles\\Level2.txt");
-                    currentGameState.SetCurrentGame(elements);
-                    currentGameState.MessageLog.MyLog.Add("loading level 2...");
-                    currentGameState.ActiveLevel = "2";
+            case 2:
+                gameState.SetCurrentGame(LevelData.Load("ProjectFiles\\Level3.txt"));
+                gameState.MessageLog.MyLog.Add("loading level 3...");
+                gameState.ActiveLevel = "3";
+                break;
 
-                    validChoiceFlag = true;
-                    break;
-                case ConsoleKey.D3:
-                    Console.SetCursorPosition(15, 18);
-                    Console.Write("press [3] to play level 3");
+            case 3:
+                gameState.SetCurrentGame(LevelData.Load(RandomMap.GenerateMap()));
+                gameState.MessageLog.MyLog.Add("generating a random level...");
+                gameState.ActiveLevel = "*randomly generated map*";
+                break;
 
-                    elements = LevelData.Load("ProjectFiles\\Level3.txt");
-                    currentGameState.SetCurrentGame(elements);
-                    currentGameState.MessageLog.MyLog.Add("loading level 3...");
-                    currentGameState.ActiveLevel = "3";
-
-                    validChoiceFlag = true;
-                    break;
-                case ConsoleKey.D4:
-                    Console.SetCursorPosition(15, 19);
-                    Console.Write("press [4] to generate a random level");
-
-                    elements = LevelData.Load(RandomMap.GenerateMap());
-                    currentGameState.SetCurrentGame(elements);
-                    currentGameState.MessageLog.MyLog.Add("generating a random level...");
-                    currentGameState.ActiveLevel = "*randomly generated map*";
-                    validChoiceFlag = true;
-                    break;
-            }
-        } while (!validChoiceFlag);
+        }
         Thread.Sleep(500);
         Console.Clear();
         Console.ForegroundColor = ConsoleColor.Green;
         Console.SetCursorPosition(23, 10);
-        switch(userChoice.Key)
+        switch (index)
         {
-            case ConsoleKey.D1:
+            case -1:
+                break;
+            case 0:
                 Console.WriteLine("loading level 1...");
                 Console.SetCursorPosition(15, 12);
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine("move around by using the arrow keys");
                 break;
-            case ConsoleKey.D2:
+            case 1:
                 Console.WriteLine("loading level 2...");
                 Console.SetCursorPosition(15, 12);
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine("did you know that the ratking has 2 tails?");
                 break;
-            case ConsoleKey.D3:
+            case 2:
                 Console.WriteLine("loading level 3...");
                 Console.SetCursorPosition(15, 12);
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine("did you know that you can shoot la[z]er?");
                 break;
-            case ConsoleKey.D4:
+            case 3:
                 Console.WriteLine("generating level...");
                 Console.SetCursorPosition(15, 12);
                 Console.ForegroundColor = ConsoleColor.White;
@@ -126,6 +114,95 @@ public abstract class LevelElement
                 break;
         }
         Thread.Sleep(4000);
+
+        //ConsoleKeyInfo userChoice;
+        //bool validChoiceFlag = false;
+        //Console.ForegroundColor = ConsoleColor.Green;
+        //do
+        //{
+        //    userChoice = Console.ReadKey(true);
+        //    List<LevelElement>? elements = null;
+        //    switch (userChoice.Key)
+        //    {
+        //        case ConsoleKey.D1:
+        //            Console.SetCursorPosition(15, 16);
+        //            Console.Write("press [1] to play level 1");
+
+        //            elements = LevelData.Load("ProjectFiles\\Level1.txt");
+        //            gameState.SetCurrentGame(elements);
+        //            gameState.MessageLog.MyLog.Add("loading level 1...");
+        //            gameState.ActiveLevel = "1";
+
+        //            validChoiceFlag = true;
+        //            break;
+        //        case ConsoleKey.D2:
+        //            Console.SetCursorPosition(15, 17);
+        //            Console.Write("press [2] to play level 2");
+
+        //            elements = LevelData.Load("ProjectFiles\\Level2.txt");
+        //            gameState.SetCurrentGame(elements);
+        //            gameState.MessageLog.MyLog.Add("loading level 2...");
+        //            gameState.ActiveLevel = "2";
+
+        //            validChoiceFlag = true;
+        //            break;
+        //        case ConsoleKey.D3:
+        //            Console.SetCursorPosition(15, 18);
+        //            Console.Write("press [3] to play level 3");
+
+        //            elements = LevelData.Load("ProjectFiles\\Level3.txt");
+        //            gameState.SetCurrentGame(elements);
+        //            gameState.MessageLog.MyLog.Add("loading level 3...");
+        //            gameState.ActiveLevel = "3";
+
+        //            validChoiceFlag = true;
+        //            break;
+        //        case ConsoleKey.D4:
+        //            Console.SetCursorPosition(15, 19);
+        //            Console.Write("press [4] to generate a random level");
+
+        //            elements = LevelData.Load(RandomMap.GenerateMap());
+        //            gameState.SetCurrentGame(elements);
+        //            gameState.MessageLog.MyLog.Add("generating a random level...");
+        //            gameState.ActiveLevel = "*randomly generated map*";
+        //            validChoiceFlag = true;
+        //            break;
+        //    }
+        //} while (!validChoiceFlag);
+        //Thread.Sleep(500);
+        //Console.Clear();
+        //Console.ForegroundColor = ConsoleColor.Green;
+        //Console.SetCursorPosition(23, 10);
+        //switch(userChoice.Key)
+        //{
+        //    case ConsoleKey.D1:
+        //        Console.WriteLine("loading level 1...");
+        //        Console.SetCursorPosition(15, 12);
+        //        Console.ForegroundColor = ConsoleColor.White;
+        //        Console.WriteLine("move around by using the arrow keys");
+        //        break;
+        //    case ConsoleKey.D2:
+        //        Console.WriteLine("loading level 2...");
+        //        Console.SetCursorPosition(15, 12);
+        //        Console.ForegroundColor = ConsoleColor.White;
+        //        Console.WriteLine("did you know that the ratking has 2 tails?");
+        //        break;
+        //    case ConsoleKey.D3:
+        //        Console.WriteLine("loading level 3...");
+        //        Console.SetCursorPosition(15, 12);
+        //        Console.ForegroundColor = ConsoleColor.White;
+        //        Console.WriteLine("did you know that you can shoot la[z]er?");
+        //        break;
+        //    case ConsoleKey.D4:
+        //        Console.WriteLine("generating level...");
+        //        Console.SetCursorPosition(15, 12);
+        //        Console.ForegroundColor = ConsoleColor.White;
+        //        Console.Write("hopefully there are no holes in the wall and");
+        //        Console.SetCursorPosition(18, 13);
+        //        Console.Write("no indestructable rocks in the way");
+        //        break;
+        //}
+        //Thread.Sleep(4000);
     }
     public void Draw()
     {

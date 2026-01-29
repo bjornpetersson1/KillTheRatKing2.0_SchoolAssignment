@@ -8,43 +8,77 @@ namespace Labb2_DungeonCrawler.Menu;
 
 public static class MenuHelper
 {
-    public static int ShowMenu(string title, List<string> options, int startIndex = 0, bool allowEscape = true)
+    public static int ShowMenu(string title, List<MenuOption> options, bool allowEscape = true)
     {
-        int index = startIndex;
+        int index = 0;
         ConsoleKey key;
-
+        index = options.FindIndex(o => o.IsEnabled);
+        if (index == -1) return -1;
         Console.Clear();
+
+
+        int startWriteTop = (Console.WindowHeight - options.Count) / 2;
+        int startWriteLeft = (Console.WindowWidth - title.Length) / 2;
+
+        Console.SetCursorPosition(startWriteLeft, startWriteTop);
         ColorFlashWrite(title);
        
         Console.WriteLine();
-        Console.WriteLine();
 
         int menuTop = Console.CursorTop;
-        int menuLeft = Console.CursorLeft;
+        int menuLeft = startWriteLeft;
 
         do
         {
-            Console.SetCursorPosition(menuLeft, menuTop);
 
             for (int i = 0; i < options.Count; i++)
             {
+                Console.SetCursorPosition(menuLeft, menuTop + i);
+                
                 if (i == index)
                 {
-                    ColorFlashWrite($"> {options[i]}    ");
+                    if (options[i].IsEnabled)
+                    {
+                        ColorFlashWrite($"> {options[i].Text.PadRight(startWriteLeft)}    ");
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.Write($"  {options[i].Text.PadRight(startWriteLeft)}");
+                    }
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.WriteLine($"  {options[i]}");
+                    if (options[i].IsEnabled)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                        Console.Write($"  {options[i].Text.PadRight(startWriteLeft)}");
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.Write($"  {options[i].Text.PadRight(startWriteLeft)}");
+                    }
                 }
             }
 
             Console.ResetColor();
 
             key = Console.ReadKey(true).Key;
-
-            if (key == ConsoleKey.UpArrow && index > 0) index--;
-            if (key == ConsoleKey.DownArrow && index < options.Count - 1) index++;
+            if (key == ConsoleKey.UpArrow)
+            {
+                do
+                {
+                    index = (index == 0) ? options.Count -1 : index -1;
+                } while (!options[index].IsEnabled);
+            }
+            else if (key == ConsoleKey.DownArrow)
+            {
+                do
+                {
+                    index = (index == options.Count -1) ? 0 : index +1;
+                } while (!options[index].IsEnabled);
+            }
 
             if (allowEscape && key == ConsoleKey.Escape)
                 return -1;
@@ -83,7 +117,7 @@ public static class MenuHelper
             Console.SetCursorPosition(inputLeft, inputTop);
             Console.ForegroundColor = colors[i];
             Thread.Sleep(100);
-            Console.WriteLine(input);
+            Console.Write(input);
         }
     }
 }

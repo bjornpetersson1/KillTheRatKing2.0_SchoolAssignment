@@ -27,29 +27,15 @@ public static class GameLoop
 
             var saves = await GetSavesPlayerName();
             bool hasSaves = saves.Any();
-            List<string> mainMenuOptions;
-            int mainChoice;
-
-            if (hasSaves)
+       
+            var mainMenuOptions = new List<MenuOption>
             {
-                mainMenuOptions = new List<string>
-                {
-                    "New Game",
-                    "High Score",
-                    "Continue",
-                    "Load Save"
-                };
-                mainChoice = MenuHelper.ShowMenu("=== MAIN MENU ===", mainMenuOptions, 2);
-            }
-            else
-            {
-                mainMenuOptions = new List<string>
-                {
-                    "New Game",
-                    "High Score"
-                };
-                mainChoice = MenuHelper.ShowMenu("=== MAIN MENU ===", mainMenuOptions);
-            }
+                new MenuOption("Continue", hasSaves),
+                new MenuOption("Load Save", hasSaves),
+                new MenuOption("New Game"),
+                new MenuOption("High Score")
+            };
+            int mainChoice = MenuHelper.ShowMenu("=== Main Menu ===", mainMenuOptions);
 
             ObjectId id = ObjectId.Empty;
 
@@ -63,14 +49,6 @@ public static class GameLoop
                 case -1: continue;
 
                 case 0:
-                    id = ObjectId.Empty;
-                    break;
-
-                case 1:
-                    await ShowHighScore();
-                    continue;
-                    
-                case 2:
                     if (!hasSaves)
                     {
                         Console.Clear();
@@ -81,11 +59,19 @@ public static class GameLoop
                     id = saves.First().Id;
                     break;
 
-                case 3:
+                case 1:
                     var selectedSave = await SelectSaveFromList();
                     if (selectedSave == null) continue;
                     id = selectedSave.Id;
                     break;
+                    
+                case 2:
+                    id = ObjectId.Empty;
+                    break;
+
+                case 3:
+                    await ShowHighScore();
+                    continue;
 
                 default:
                     continue;
@@ -213,48 +199,53 @@ public static class GameLoop
     }
     private static GameState SelectLevel(string PlayerName,GameState gameState)
     {
-        Graphics.WriteLevelSelect(PlayerName);
-        LevelElement.LevelChoice(gameState);
+        //Graphics.WriteLevelSelect(PlayerName);
+        LevelElement.LevelChoice(PlayerName, gameState);
         return gameState;
     }
 
     private static async Task<string> SelectClass(GameState gameState)
     {
         var classes = await GetClassesNames();
-        int index = 0;
-        ConsoleKey key;
-        do
-        {
-            Console.Clear();
-            Console.ResetColor();
-            Console.WriteLine("select class:");
-            for (int i = 0; i < classes.Count; i++)
-            {
-                if (i == index)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine($">    {classes[i]}");
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"    {classes[i]}");
-                }
-            }
+        var options = classes.Select(c => new MenuOption(c)).ToList();
 
-            Console.ResetColor();
+        int index = MenuHelper.ShowMenu("=== Classes ===", options);
 
-            key = Console.ReadKey(true).Key;
 
-            if (key == ConsoleKey.UpArrow && index > 0)
-                index--;
-            else if (key == ConsoleKey.DownArrow && index < classes.Count - 1)
-                index++;
+        //int index = 0;
+        //ConsoleKey key;
+        //do
+        //{
+        //    Console.Clear();
+        //    Console.ResetColor();
+        //    Console.WriteLine("select class:");
+        //    for (int i = 0; i < classes.Count; i++)
+        //    {
+        //        if (i == index)
+        //        {
+        //            Console.ForegroundColor = ConsoleColor.Green;
+        //            Console.WriteLine($">    {classes[i]}");
+        //        }
+        //        else
+        //        {
+        //            Console.ForegroundColor = ConsoleColor.Red;
+        //            Console.WriteLine($"    {classes[i]}");
+        //        }
+        //    }
 
-        } while (key != ConsoleKey.Enter);
+        //    Console.ResetColor();
 
-        Console.ResetColor();
-        Console.Clear();
+        //    key = Console.ReadKey(true).Key;
+
+        //    if (key == ConsoleKey.UpArrow && index > 0)
+        //        index--;
+        //    else if (key == ConsoleKey.DownArrow && index < classes.Count - 1)
+        //        index++;
+
+        //} while (key != ConsoleKey.Enter);
+
+        //Console.ResetColor();
+        //Console.Clear();
 
         gameState.ClassId = await MongoConnection.MongoConnection.GetClassId(classes[index]);
 
@@ -483,9 +474,9 @@ public static class GameLoop
             return null;
         }
 
-        var options = saves.Select(s => $"{s.PlayerName}, level {s.AktiveLevelName}, {s.PlayerXp} xp").ToList();
+        var options = saves.Select(s => new MenuOption($"{s.PlayerName}, level {s.AktiveLevelName}, {s.PlayerXp} xp, {s.CreatedAt}", isEnabled: true)).ToList();
 
-        int selectedIndex = MenuHelper.ShowMenu("Select save:", options);
+        int selectedIndex = MenuHelper.ShowMenu("=== Select Save ===", options);
         if (selectedIndex == -1) return null;
 
         return saves[selectedIndex];
