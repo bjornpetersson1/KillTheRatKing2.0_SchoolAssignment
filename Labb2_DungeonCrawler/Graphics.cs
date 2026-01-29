@@ -18,19 +18,23 @@ public static class Graphics
 
     public static void WriteInfo()
     {
-        Console.SetCursorPosition(4, height - 4);
+        string info = "| press [L] to open message log | press [esc] to leave and play another level (HP and XP is saved) |";
+        int left = (widht - info.Length) / 2;
+        Console.SetCursorPosition(left, height - 4);
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write("| press [L] to open message log | press [esc] to leave and play another level (HP and XP is saved)");
+        Console.Write(info);
     }
     public static void PrintHighScore(List<HighScore> highScores)
     {
+        int left = (widht - 15) / 2;
+        int top = (height - highScores.Count - 2) / 2;
         Console.Clear();
-        Console.SetCursorPosition(20, 7);
+        Console.SetCursorPosition(left, top);
         Console.WriteLine("Highscore:");
         
         for (int i = 0; i < highScores.Count; i++)
         {
-            Console.SetCursorPosition(20, 10 + i);
+            Console.SetCursorPosition(left, top + 2 + i);
             Console.WriteLine($"{i + 1}: {highScores[i].PlayerName} {highScores[i].Score} {(highScores[i].IsAlive ? "Alive" : "Dead")}");
         }
 
@@ -156,14 +160,16 @@ public static class Graphics
     {
         Console.Clear();
         string hello = "Hello there, whats your name?";
+        int left = (widht - hello.Length) / 2;
+        int top = (height - 2) / 2;
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.SetCursorPosition(15, 10);
+        Console.SetCursorPosition(left, top);
         foreach (var item in hello)
         {
             Console.Write(item);
             Thread.Sleep(writingSpeed);
         }
-        Console.SetCursorPosition(15, 12);
+        Console.SetCursorPosition(left, top+2);
         Console.CursorVisible = true;
         Console.ForegroundColor = ConsoleColor.Red;
         Console.Write("Name: ");

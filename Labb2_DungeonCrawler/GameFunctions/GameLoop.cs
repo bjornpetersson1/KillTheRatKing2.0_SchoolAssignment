@@ -150,7 +150,6 @@ public static class GameLoop
         var sortedHighScore = collectedHighScore.OrderByDescending(s => s.Score).Take(10).ToList();
         Graphics.PrintHighScore(sortedHighScore);
 
-        Console.WriteLine("\nPress any key to return to main menu...");
         Console.ReadKey(true);
     }
 
@@ -209,7 +208,7 @@ public static class GameLoop
         var classes = await GetClassesNames();
         var options = classes.Select(c => new MenuOption(c)).ToList();
 
-        int index = MenuHelper.ShowMenu("=== Classes ===", options);
+        int index = MenuHelper.ShowMenu("=== Choose Class ===", options);
 
 
         //int index = 0;
