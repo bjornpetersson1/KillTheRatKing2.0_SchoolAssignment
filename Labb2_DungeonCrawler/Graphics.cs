@@ -119,15 +119,15 @@ public static class Graphics
                 Console.SetCursorPosition(startPositionX, startPositionY);
                 Console.Write("░");
                 startPositionX--;
-                if (startPositionX < 10)
+                if (startPositionX < startLeft + 10)
                 {
-                    startPositionX = 28;
+                    startPositionX = startLeft + 28;
                     startPositionY++;
                 }
-                if (startPositionY > 15)
+                if (startPositionY > startTop + 15)
                 {
-                    startPositionX = 28;
-                    startPositionY = 10;
+                    startPositionX = startLeft + 28;
+                    startPositionY = startTop + 10;
                 }
             }
             count++;

@@ -19,17 +19,20 @@ public abstract class Enemy : LevelElement
     {
         Console.SetCursorPosition(0, 3);
         Console.Write(new string(' ', Console.WindowWidth));
-        Console.SetCursorPosition(0, 3);
         Console.ForegroundColor = ConsoleColor.DarkMagenta;
         string returnMessage = string.Empty;
         if (HP > 0)
         {
             returnMessage = $"|{Symbol}: {Name} | HP: {HP} | Attack: {AttackDice} | Defence: {DefenceDice} |";
+            int leftPos = (Console.WindowWidth - returnMessage.Length) / 2;
+            Console.SetCursorPosition(leftPos, 3);
             Console.WriteLine(returnMessage);
         }
         else
         {
             returnMessage = $"{Name} is now killed and dead";
+            int leftPos = (Console.WindowWidth - returnMessage.Length) / 2;
+            Console.SetCursorPosition(leftPos, 3);
             Console.WriteLine(returnMessage);
         }
         return returnMessage;
