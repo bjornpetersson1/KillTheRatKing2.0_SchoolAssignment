@@ -12,92 +12,102 @@ namespace Labb2_DungeonCrawler;
 
 public static class Graphics
 {
-    private static int writingSpeed = 1; 
+    private static int writingSpeed = 1;
+    private static int widht = Console.WindowWidth;
+    private static int height = Console.WindowHeight;
+
     public static void WriteInfo()
     {
-        Console.SetCursorPosition(4, 40);
+        string info = "| press [L] to open message log | press [esc] to leave and play another level (HP and XP is saved) |";
+        int left = (widht - info.Length) / 2;
+        Console.SetCursorPosition(left, height - 4);
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write("| press [L] to open message log | press [esc] to leave and play another level (HP and XP is saved)");
+        Console.Write(info);
     }
     public static void PrintHighScore(List<HighScore> highScores)
     {
+        int left = (widht - 15) / 2;
+        int top = (height - highScores.Count - 2) / 2;
         Console.Clear();
-        Console.SetCursorPosition(20, 7);
+        Console.SetCursorPosition(left, top);
         Console.WriteLine("Highscore:");
         
         for (int i = 0; i < highScores.Count; i++)
         {
-            Console.SetCursorPosition(20, 10 + i);
+            Console.SetCursorPosition(left, top + 2 + i);
             Console.WriteLine($"{i + 1}: {highScores[i].PlayerName} {highScores[i].Score} {(highScores[i].IsAlive ? "Alive" : "Dead")}");
         }
 
     }
     public static void WriteTitleScreen()
     {
-        Console.SetCursorPosition(0, 0);
+        int width = 60;
+        int height = 25;
+        int startLeft = (Console.WindowWidth - width) / 2;
+        int startTop = (Console.WindowHeight - height) / 2;
         int count = 0;
         Console.CursorVisible = false;
         Console.ForegroundColor = ConsoleColor.White;
         string pressToStart = "press any key to start";
-        for (int i = 0; i < 25; i++)
+        for (int i = 0; i < height; i++)
         {
-            for (global::System.Int32 j = 0; j < 60; j++)
+            Console.SetCursorPosition(startLeft, startTop + i);
+            for (global::System.Int32 j = 0; j < width; j++)
             {
-                if(i == 0 || i == 24) Console.Write('#');
-                else if(j == 0 || j == 59) Console.Write('#');
+                if(i == 0 || i == height-1) Console.Write('#');
+                else if(j == 0 || j == width-1) Console.Write('#');
                 else Console.Write(' ');
             }
-            Console.WriteLine();
         }
         Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.SetCursorPosition(30, 10);
+        Console.SetCursorPosition(startLeft + 30, startTop + 10);
         Console.WriteLine("kill the ratking");
-        int startPositionX = 28;
-        int startPositionY = 10;
+        int startPositionX = startLeft + 28;
+        int startPositionY = startTop + 10;
         while (!Console.KeyAvailable)
         {
             if (count % 2 == 0 )
             {
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                for (int i = 2; i < 23; i++)
+                for (int i = startTop + 2; i < startTop + 23; i++)
                 {
-                    for (global::System.Int32 j = 3; j < 57; j++)
+                    for (global::System.Int32 j = startLeft + 3; j < startLeft + 57; j++)
                     {
                         Console.SetCursorPosition(j, i);
-                        if ((i == 2 || i == 22) && (j % 4 == 0))
+                        if ((i == startTop + 2 || i == startTop + 22) && (j % 4 == 0))
                         {
                             Console.Write('¤');
                         }
-                        else if ((j == 3 || j == 56) && (i % 2 == 0)) Console.Write('¤');
+                        else if ((j == startLeft + 3 || j == startLeft + 56) && (i % 2 == 0)) Console.Write('¤');
                     }
                 }
             }
             else if (count % 3 == 0)
             {
-                for (int i = 2; i < 23; i++)
+                for (int i = startTop + 2; i < startTop + 23; i++)
                 {
                     
-                    for (global::System.Int32 j = 3; j < 57; j++)
+                    for (global::System.Int32 j = startLeft + 3; j < startLeft + 57; j++)
                     {
                         Console.SetCursorPosition(j, i);
-                        if ((i == 2 || i == 22) && (j % 4 == 0))
+                        if ((i == startTop + 2 || i == startTop + 22) && (j % 4 == 0))
                         {
                             Console.Write(' ');
                         }
-                        else if ((j == 3 || j == 56) && (i % 2 == 0)) Console.Write(' ');
+                        else if ((j == startLeft + 3 || j == startLeft + 56) && (i % 2 == 0)) Console.Write(' ');
                         
                     }
                 }
             }
             if (count % 5 == 0)
             {
-                Console.SetCursorPosition(20, 20);
+                Console.SetCursorPosition(startLeft + 20, startTop + 20);
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.Write(pressToStart);
             }
             else if (count % 8 == 0)
             {
-                Console.SetCursorPosition(20, 20);
+                Console.SetCursorPosition(startLeft + 20, startTop + 20);
                 foreach (var item in pressToStart)
                 {
                     Console.Write(' ');
@@ -109,15 +119,15 @@ public static class Graphics
                 Console.SetCursorPosition(startPositionX, startPositionY);
                 Console.Write("░");
                 startPositionX--;
-                if (startPositionX < 10)
+                if (startPositionX < startLeft + 10)
                 {
-                    startPositionX = 28;
+                    startPositionX = startLeft + 28;
                     startPositionY++;
                 }
-                if (startPositionY > 15)
+                if (startPositionY > startTop + 15)
                 {
-                    startPositionX = 28;
-                    startPositionY = 10;
+                    startPositionX = startLeft + 28;
+                    startPositionY = startTop + 10;
                 }
             }
             count++;
@@ -129,35 +139,44 @@ public static class Graphics
     {
         Console.Clear();
         Console.ForegroundColor = ConsoleColor.DarkGray;
+        int leftPos;
+        int topPos;
         string gameOver = "game over.";
-        string roundInfo = $"{player.Name} the {player.Class} died a heroic death fighting rats and\nsnakes in {player.TurnsPlayed} turns and gained {player.XP} xp\npress [enter] to accept your faith";
-        Console.SetCursorPosition(15, 10);
+        var roundInfo = new List<string>() { $"{player.Name} the {player.Class} died a heroic death fighting rats and", $"snakes in {player.TurnsPlayed} turns and gained {player.XP} xp", "press [enter] to accept your faith" };
+        leftPos = (Console.WindowWidth - gameOver.Length) / 2;
+        topPos = (Console.WindowHeight - 2) / 2;
+        Console.SetCursorPosition(leftPos, topPos);
         foreach (var item in gameOver)
         {
             Console.Write(item);
             Thread.Sleep(200);
         }
-        Console.SetCursorPosition(0, 12);
         Console.ForegroundColor = ConsoleColor.DarkRed;
-        foreach (var item in roundInfo)
+        leftPos = (Console.WindowWidth - roundInfo[0].Length) / 2;
+        for (int i = 0; i < roundInfo.Count; i++)
         {
-            Console.Write(item);
-            Thread.Sleep(writingSpeed);
+            Console.SetCursorPosition(leftPos, topPos + i + 2);
+            foreach (var item in roundInfo[i])
+            {
+                Console.Write(item);
+                Thread.Sleep(writingSpeed);
+            }
         }
-        //return Console.ReadKey(true);
     }
     public static string WriteStartScreen()
     {
         Console.Clear();
         string hello = "Hello there, whats your name?";
+        int left = (widht - hello.Length) / 2;
+        int top = (height - 2) / 2;
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.SetCursorPosition(15, 10);
+        Console.SetCursorPosition(left, top);
         foreach (var item in hello)
         {
             Console.Write(item);
             Thread.Sleep(writingSpeed);
         }
-        Console.SetCursorPosition(15, 12);
+        Console.SetCursorPosition(left, top+2);
         Console.CursorVisible = true;
         Console.ForegroundColor = ConsoleColor.Red;
         Console.Write("Name: ");

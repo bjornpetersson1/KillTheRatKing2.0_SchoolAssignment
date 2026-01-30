@@ -46,14 +46,15 @@ public class Player : LevelElement
     }
     public override string PrintUnitInfo()
     {
+        string returnMessage = $"|{Symbol}: {Name}, {Class} | HP: {HP} | XP: {XP}| Attack: {AttackDice} | Defence: {DefenceDice} | Turn: {TurnsPlayed} |";
+        int leftPos = (Console.WindowWidth - returnMessage.Length) / 2;
         if (TurnsPlayed == 10 || TurnsPlayed == 100 || TurnsPlayed == 1000 || TurnsPlayed == 10000 || TurnsPlayed == 100000)
         {
-            Console.SetCursorPosition(0, 0);
+            Console.SetCursorPosition(leftPos, 0);
             Console.Write(new string(' ', Console.WindowWidth));
         }
-        Console.SetCursorPosition(0, 0);
+        Console.SetCursorPosition(leftPos, 0);
         Console.ForegroundColor = ConsoleColor.DarkGreen;
-        string returnMessage = $"|{Symbol}: {Name}, {Class} | HP: {HP} | XP: {XP}| Attack: {AttackDice} | Defence: {DefenceDice} | Turn: {TurnsPlayed} |";
         Console.WriteLine(returnMessage);
         return returnMessage;
     }

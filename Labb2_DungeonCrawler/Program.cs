@@ -11,7 +11,7 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        Console.SetBufferSize(Console.WindowWidth, 60);
+        Console.SetBufferSize(Console.WindowWidth, Console.WindowHeight);
         await GameLoop.GameStart();
     }
 }
