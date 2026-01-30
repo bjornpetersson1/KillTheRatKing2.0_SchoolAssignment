@@ -162,7 +162,6 @@ public static class Graphics
                 Thread.Sleep(writingSpeed);
             }
         }
-        //return Console.ReadKey(true);
     }
     public static string WriteStartScreen()
     {

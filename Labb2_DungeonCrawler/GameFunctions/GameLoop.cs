@@ -39,11 +39,6 @@ public static class GameLoop
 
             ObjectId id = ObjectId.Empty;
 
-
-            //Console.Clear();
-            //Console.SetCursorPosition(0, 10);
-            //Console.WriteLine("Press [L] to load, [D] to delete save and start a new game,\nanything else to just start a new game");
-
             switch (mainChoice)
             {
                 case -1: continue;
@@ -77,30 +72,6 @@ public static class GameLoop
                     continue;
             }
 
-            //var loadNewOrDelete = Console.ReadKey(true);
-            //if (loadNewOrDelete.Key == ConsoleKey.L)
-            //{
-            //    var selectedSave = await SelectSaveFromList();
-            //    if (selectedSave == null) continue;
-            //    id = selectedSave.Id;
-            //}
-
-            //var loadNewOrDelete = Console.ReadKey(true);
-            //if (loadNewOrDelete.Key == ConsoleKey.D)
-            //{
-            //    var selectedSave = await SelectSaveFromList('D');
-            //    await ConfirmSaveDelete(selectedSave);
-            //}
-            //if (loadNewOrDelete.Key == ConsoleKey.L)
-            //{
-            //    var selectedSave = await SelectSaveFromList('L');
-            //    id = selectedSave.Id;
-            //}
-            //else
-            //{
-            //    id = ObjectId.Empty;
-            //}
-
             GameState gameState;
             Player player;
             if (id != ObjectId.Empty)
@@ -115,10 +86,6 @@ public static class GameLoop
             player = gameState.CurrentState.OfType<Player>().First();
 
             gameState.XpScore = player.XP;
-
-            //await ShowHighScore(gameState);
-            //Console.ReadKey(true);
-            //Console.Clear();
             
             await SaveToDb(gameState);
 
@@ -129,7 +96,6 @@ public static class GameLoop
 
     private static async Task ShowHighScore()
     {
-        //var player = gameState.CurrentState?.OfType<Player>().FirstOrDefault();
         var highScoresDead = await MongoConnection.MongoConnection.GetHighScoreFromDB();
         var highScoresAlive = await MongoConnection.MongoConnection.GetActiveSavesFromDB();
 
@@ -198,7 +164,6 @@ public static class GameLoop
     }
     private static GameState SelectLevel(string PlayerName,GameState gameState)
     {
-        //Graphics.WriteLevelSelect(PlayerName);
         LevelElement.LevelChoice(PlayerName, gameState);
         return gameState;
     }
@@ -209,42 +174,6 @@ public static class GameLoop
         var options = classes.Select(c => new MenuOption(c)).ToList();
 
         int index = MenuHelper.ShowMenu("=== Choose Class ===", options);
-
-
-        //int index = 0;
-        //ConsoleKey key;
-        //do
-        //{
-        //    Console.Clear();
-        //    Console.ResetColor();
-        //    Console.WriteLine("select class:");
-        //    for (int i = 0; i < classes.Count; i++)
-        //    {
-        //        if (i == index)
-        //        {
-        //            Console.ForegroundColor = ConsoleColor.Green;
-        //            Console.WriteLine($">    {classes[i]}");
-        //        }
-        //        else
-        //        {
-        //            Console.ForegroundColor = ConsoleColor.Red;
-        //            Console.WriteLine($"    {classes[i]}");
-        //        }
-        //    }
-
-        //    Console.ResetColor();
-
-        //    key = Console.ReadKey(true).Key;
-
-        //    if (key == ConsoleKey.UpArrow && index > 0)
-        //        index--;
-        //    else if (key == ConsoleKey.DownArrow && index < classes.Count - 1)
-        //        index++;
-
-        //} while (key != ConsoleKey.Enter);
-
-        //Console.ResetColor();
-        //Console.Clear();
 
         gameState.ClassId = await MongoConnection.MongoConnection.GetClassId(classes[index]);
 
@@ -480,53 +409,6 @@ public static class GameLoop
 
         return saves[selectedIndex];
 
-        //int index = 0;
-        //ConsoleKey key;
-        //var selectedColor = new ConsoleColor();
-        //var notSelectedColor = new ConsoleColor();
-        //if (purpose == 'D')
-        //{
-        //    notSelectedColor = ConsoleColor.Green;
-        //    selectedColor = ConsoleColor.Red;
-        //}
-        //else
-        //{
-        //    notSelectedColor = ConsoleColor.Red;
-        //    selectedColor = ConsoleColor.Green;
-        //}
-        //do
-        //{
-        //    Console.Clear();
-
-        //    for (int i = 0; i < saves.Count; i++)
-        //    {
-        //        if (i == index)
-        //        {
-        //            Console.ForegroundColor = selectedColor;
-        //            Console.WriteLine($">    {saves[i].PlayerName}, level {saves[i].AktiveLevelName}, {saves[i].PlayerXp} xp\n                     created {saves[i].CreatedAt}");
-        //        }
-        //        else
-        //        {
-        //            Console.ForegroundColor = notSelectedColor;
-        //            Console.WriteLine($"    {saves[i].PlayerName}, level {saves[i].AktiveLevelName}, {saves[i].PlayerXp} xp\n                    created {saves[i].CreatedAt}");
-        //        }
-        //    }
-
-        //    Console.ResetColor();
-
-        //    key = Console.ReadKey(true).Key;
-
-        //    if (key == ConsoleKey.UpArrow && index > 0)
-        //        index--;
-        //    else if (key == ConsoleKey.DownArrow && index < saves.Count - 1)
-        //        index++;
-
-        //} while (key != ConsoleKey.Enter);
-
-        //Console.ResetColor();
-        //Console.Clear();
-
-        //return saves[index];
     }
     static async Task ConfirmSaveDelete(SaveInfoDTO selectedSave)
     {

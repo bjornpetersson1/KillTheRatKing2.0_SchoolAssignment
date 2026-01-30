@@ -116,95 +116,6 @@ public abstract class LevelElement
                 break;
         }
         Thread.Sleep(4000);
-
-        //ConsoleKeyInfo userChoice;
-        //bool validChoiceFlag = false;
-        //Console.ForegroundColor = ConsoleColor.Green;
-        //do
-        //{
-        //    userChoice = Console.ReadKey(true);
-        //    List<LevelElement>? elements = null;
-        //    switch (userChoice.Key)
-        //    {
-        //        case ConsoleKey.D1:
-        //            Console.SetCursorPosition(15, 16);
-        //            Console.Write("press [1] to play level 1");
-
-        //            elements = LevelData.Load("ProjectFiles\\Level1.txt");
-        //            gameState.SetCurrentGame(elements);
-        //            gameState.MessageLog.MyLog.Add("loading level 1...");
-        //            gameState.ActiveLevel = "1";
-
-        //            validChoiceFlag = true;
-        //            break;
-        //        case ConsoleKey.D2:
-        //            Console.SetCursorPosition(15, 17);
-        //            Console.Write("press [2] to play level 2");
-
-        //            elements = LevelData.Load("ProjectFiles\\Level2.txt");
-        //            gameState.SetCurrentGame(elements);
-        //            gameState.MessageLog.MyLog.Add("loading level 2...");
-        //            gameState.ActiveLevel = "2";
-
-        //            validChoiceFlag = true;
-        //            break;
-        //        case ConsoleKey.D3:
-        //            Console.SetCursorPosition(15, 18);
-        //            Console.Write("press [3] to play level 3");
-
-        //            elements = LevelData.Load("ProjectFiles\\Level3.txt");
-        //            gameState.SetCurrentGame(elements);
-        //            gameState.MessageLog.MyLog.Add("loading level 3...");
-        //            gameState.ActiveLevel = "3";
-
-        //            validChoiceFlag = true;
-        //            break;
-        //        case ConsoleKey.D4:
-        //            Console.SetCursorPosition(15, 19);
-        //            Console.Write("press [4] to generate a random level");
-
-        //            elements = LevelData.Load(RandomMap.GenerateMap());
-        //            gameState.SetCurrentGame(elements);
-        //            gameState.MessageLog.MyLog.Add("generating a random level...");
-        //            gameState.ActiveLevel = "*randomly generated map*";
-        //            validChoiceFlag = true;
-        //            break;
-        //    }
-        //} while (!validChoiceFlag);
-        //Thread.Sleep(500);
-        //Console.Clear();
-        //Console.ForegroundColor = ConsoleColor.Green;
-        //Console.SetCursorPosition(23, 10);
-        //switch(userChoice.Key)
-        //{
-        //    case ConsoleKey.D1:
-        //        Console.WriteLine("loading level 1...");
-        //        Console.SetCursorPosition(15, 12);
-        //        Console.ForegroundColor = ConsoleColor.White;
-        //        Console.WriteLine("move around by using the arrow keys");
-        //        break;
-        //    case ConsoleKey.D2:
-        //        Console.WriteLine("loading level 2...");
-        //        Console.SetCursorPosition(15, 12);
-        //        Console.ForegroundColor = ConsoleColor.White;
-        //        Console.WriteLine("did you know that the ratking has 2 tails?");
-        //        break;
-        //    case ConsoleKey.D3:
-        //        Console.WriteLine("loading level 3...");
-        //        Console.SetCursorPosition(15, 12);
-        //        Console.ForegroundColor = ConsoleColor.White;
-        //        Console.WriteLine("did you know that you can shoot la[z]er?");
-        //        break;
-        //    case ConsoleKey.D4:
-        //        Console.WriteLine("generating level...");
-        //        Console.SetCursorPosition(15, 12);
-        //        Console.ForegroundColor = ConsoleColor.White;
-        //        Console.Write("hopefully there are no holes in the wall and");
-        //        Console.SetCursorPosition(18, 13);
-        //        Console.Write("no indestructable rocks in the way");
-        //        break;
-        //}
-        //Thread.Sleep(4000);
     }
     public void Draw()
     {
@@ -332,7 +243,4 @@ public abstract class LevelElement
         Game.MessageLog.MyLog.Add(logMessage);
         return logMessage;
     }
-
-
-
 }
