@@ -4,9 +4,11 @@
 updated version of KillTheRatking -> https://github.com/bjornpetersson1/KillTheRatking_SchoolAssignment.git
 
 ## Videos
-New game and High Score: https://github.com/user-attachments/assets/1f6645c1-d3ca-4d93-893e-075890a7d1ce  
-Load game and death: https://github.com/user-attachments/assets/5626fa21-e46f-4e17-92ef-16152cd857a1  
-<img width="875" height="413" alt="TheRatKingIsDead" src="https://github.com/user-attachments/assets/f3cf0b0d-2034-45ad-a730-b7cf9a9ffcf3" />  
+New game and High Score: [Video](https://github.com/user-attachments/assets/1f6645c1-d3ca-4d93-893e-075890a7d1ce)  
+Load game and death: [Video](https://github.com/user-attachments/assets/5626fa21-e46f-4e17-92ef-16152cd857a1)  
+
+  
+<img width="437" height="207" alt="TheRatKingIsDead" src="https://github.com/user-attachments/assets/f3cf0b0d-2034-45ad-a730-b7cf9a9ffcf3" />  
 
 ## New features  
 ### Save- and load games  
