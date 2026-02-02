@@ -63,7 +63,11 @@ public static class GameLoop
 
                     case 1:
                         var selectedSave = await SelectSaveFromList();
-                        if (selectedSave == null) continue;
+                        if (selectedSave == null)
+                        {
+                            gameState = null;
+                            continue;
+                        }
                         id = selectedSave.Id;
                         if(int.TryParse(selectedSave.AktiveLevelName, out int result))
                         {
