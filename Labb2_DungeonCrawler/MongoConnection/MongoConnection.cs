@@ -61,7 +61,7 @@ namespace Labb2_DungeonCrawler.MongoConnection
             return await highScoreCollection
                 .Find(Builders<HighScore>.Filter.Empty)
                 .SortByDescending(s => s.Score)
-                .Limit(3)
+                .Limit(10)
                 .Project(g => new HighScore
                 {
                     PlayerName = g.PlayerName,
