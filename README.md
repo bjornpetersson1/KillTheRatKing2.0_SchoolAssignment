@@ -37,4 +37,9 @@ You unlock the other levels by playing the game.
 
 Upon death your save is deleted and gone forever.
 
-## Instructions
+## Instructions  
+- Clone the repo
+- Build the app
+- Run the game  
+
+    *the game currently connects to localhost, if you would prefer something else: Change the connectionstring in the class MongoConnection*
