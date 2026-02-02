@@ -84,6 +84,7 @@ public static class GameLoop
 
                     case 3:
                         await ShowHighScore();
+                        gameState = null;
                         continue;
 
                     default:
@@ -170,7 +171,10 @@ public static class GameLoop
         string PlayerName = Graphics.WriteStartScreen();
         var gameState = new GameState(PlayerName);
         var classChoice = await SelectClass(gameState);
-
+        for (int i = 1; i < levels.Count -1; i++)
+        {
+            levels[i].IsAccessable = false;
+        }
         gameState = SelectLevel(PlayerName, gameState, levels);
 
         if (gameState == null)
